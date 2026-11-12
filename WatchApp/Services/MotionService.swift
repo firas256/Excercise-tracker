@@ -3,6 +3,10 @@ import Foundation
 
 /// Streams fused device-motion (gravity, user acceleration, rotation rate, attitude) at ~50 Hz.
 /// Callbacks arrive on `queue`, a serial background queue shared by all motion processing.
+///
+/// In the Simulator (which has no motion sensors) it plays `MotionScript` instead, so the whole
+/// app can be tried and UI-tested. Launch arguments: `-simulateMotion NO` disables this,
+/// `-simulationSpeed 3` plays it faster.
 final class MotionService {
     static let shared = MotionService()
 
@@ -16,15 +20,31 @@ final class MotionService {
         return q
     }()
     private var handler: ((MotionSample) -> Void)?
+    private var simulationTimer: DispatchSourceTimer?
 
-    var isAvailable: Bool { manager.isDeviceMotionAvailable }
+    /// Which script the Simulator plays next time `start` is called.
+    var simulationScenario: MotionScript.Scenario = .workout
+
+    static var isSimulating: Bool {
+        #if targetEnvironment(simulator)
+        return UserDefaults.standard.object(forKey: "simulateMotion") as? Bool ?? true
+        #else
+        return false
+        #endif
+    }
+
+    var isAvailable: Bool { Self.isSimulating || manager.isDeviceMotionAvailable }
     private(set) var isRunning = false
 
     /// Starts updates, replacing any previous handler.
     func start(rate: Double = 50, handler: @escaping (MotionSample) -> Void) {
         queue.async { self.handler = handler }
-        guard manager.isDeviceMotionAvailable else { return }
         if isRunning { return }
+        if Self.isSimulating {
+            startSimulation(rate: rate)
+            return
+        }
+        guard manager.isDeviceMotionAvailable else { return }
         isRunning = true
         manager.deviceMotionUpdateInterval = 1.0 / rate
         let frames = CMMotionManager.availableAttitudeReferenceFrames()
@@ -45,8 +65,48 @@ final class MotionService {
     }
 
     func stop() {
-        manager.stopDeviceMotionUpdates()
+        if Self.isSimulating {
+            queue.async {
+                self.simulationTimer?.cancel()
+                self.simulationTimer = nil
+                self.handler = nil
+            }
+        } else {
+            manager.stopDeviceMotionUpdates()
+            queue.async { self.handler = nil }
+        }
         isRunning = false
-        queue.async { self.handler = nil }
+    }
+
+    /// Plays the motion script at `rate` (× simulationSpeed). Timer state lives on `queue`.
+    private func startSimulation(rate: Double) {
+        isRunning = true
+        let scenario = simulationScenario
+        let speed = max(1, Int(UserDefaults.standard.double(forKey: "simulationSpeed").rounded()))
+        queue.async {
+            self.simulationTimer?.cancel()
+            let script = MotionScript.samples(for: scenario, rate: rate)
+            guard let last = script.last else { return }
+            let loopLength = last.timestamp + 1 / rate
+            var index = 0
+            var offset = 0.0
+            let timer = DispatchSource.makeTimerSource(queue: self.queue)
+            timer.schedule(deadline: .now(), repeating: 1 / rate)
+            timer.setEventHandler { [weak self] in
+                guard let self else { return }
+                for _ in 0..<speed {
+                    var sample = script[index]
+                    sample.timestamp += offset
+                    self.handler?(sample)
+                    index += 1
+                    if index == script.count {
+                        index = 0
+                        offset += loopLength
+                    }
+                }
+            }
+            timer.resume()
+            self.simulationTimer = timer
+        }
     }
 }

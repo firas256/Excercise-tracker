@@ -1,0 +1,56 @@
+name: Simulator UI tests
+
+# Runs the iPhone and Watch UI tests in the Simulator (the watch uses scripted motion, see
+# Shared/Processing/MotionScript.swift) and uploads a screenshot of every screen.
+on:
+  workflow_dispatch:
+
+jobs:
+  ui-tests:
+    runs-on: macos-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pick simulators
+        run: |
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json, subprocess
+          d = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))["devices"]
+          def pick(platform, prefix):
+              for runtime in sorted(d, reverse=True):
+                  if platform in runtime:
+                      for dev in d[runtime]:
+                          if dev["name"].startswith(prefix):
+                              return dev["udid"]
+              return ""
+          print("PHONE=" + pick("iOS", "iPhone"))
+          print("WATCH=" + pick("watchOS", "Apple Watch"))
+          PY
+          cat "$GITHUB_ENV"
+      - name: iPhone UI tests
+        timeout-minutes: 25
+        continue-on-error: true
+        run: |
+          mkdir -p results
+          xcodebuild test -project ExerciseTracker.xcodeproj -scheme ExerciseTracker \
+            -destination "id=$PHONE" -resultBundlePath results/iphone.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "Test Case|error:|XCTAssert|\*\* TEST" ; exit ${PIPESTATUS[0]}
+      - name: Watch UI tests
+        timeout-minutes: 25
+        continue-on-error: true
+        run: |
+          xcodebuild test -project ExerciseTracker.xcodeproj -scheme "ExerciseTracker Watch App" \
+            -destination "id=$WATCH" -resultBundlePath results/watch.xcresult \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "Test Case|error:|XCTAssert|\*\* TEST" ; exit ${PIPESTATUS[0]}
+      - name: Export screenshots
+        if: always()
+        run: |
+          python3 scripts/export_screenshots.py results shots
+          mkdir -p preview
+          for f in shots/*.png; do sips -Z 900 -s format jpeg -s formatOptions 70 "$f" --out "preview/$(basename "${f%.png}").jpg" >/dev/null; done
+          ls -la preview
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ui-screenshots
+          path: preview/

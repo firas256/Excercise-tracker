@@ -78,34 +78,13 @@ final class LiveSetTrackerTests: XCTestCase {
 
 final class CalibrationEngineTests: XCTestCase {
 
-    /// Builds a quaternion from a rotation matrix given by its columns.
-    private func quaternion(columns c0: Vector3, _ c1: Vector3, _ c2: Vector3) -> Quaternion {
-        let m00 = c0.x, m10 = c0.y, m20 = c0.z
-        let m01 = c1.x, m11 = c1.y, m21 = c1.z
-        let m02 = c2.x, m12 = c2.y, m22 = c2.z
-        let trace = m00 + m11 + m22
-        if trace > 0 {
-            let s = (trace + 1).squareRoot() * 2
-            return Quaternion(x: (m21 - m12) / s, y: (m02 - m20) / s, z: (m10 - m01) / s, w: 0.25 * s)
-        } else if m00 > m11 && m00 > m22 {
-            let s = (1 + m00 - m11 - m22).squareRoot() * 2
-            return Quaternion(x: 0.25 * s, y: (m01 + m10) / s, z: (m02 + m20) / s, w: (m21 - m12) / s)
-        } else if m11 > m22 {
-            let s = (1 + m11 - m00 - m22).squareRoot() * 2
-            return Quaternion(x: (m01 + m10) / s, y: 0.25 * s, z: (m12 + m21) / s, w: (m02 - m20) / s)
-        } else {
-            let s = (1 + m22 - m00 - m11).squareRoot() * 2
-            return Quaternion(x: (m02 + m20) / s, y: (m12 + m21) / s, z: 0.25 * s, w: (m10 - m01) / s)
-        }
-    }
-
     /// Simulates the watch for a given true wear orientation and arm pose (arm axes in world).
     private func sample(t: Double, forearmDev f: Vector3, palmDev p: Vector3,
                         forearmWorld fw: Vector3, palmWorld pw: Vector3, rotation: Vector3 = .zero) -> MotionSample {
         let r = f.cross(p).normalized
         let rw = fw.cross(pw).normalized
         func world(_ d: Vector3) -> Vector3 { fw * d.dot(f) + pw * d.dot(p) + rw * d.dot(r) }
-        let q = quaternion(columns: world(.unitX), world(.unitY), world(.unitZ))
+        let q = Quaternion(rotationColumns: world(.unitX), world(.unitY), world(.unitZ))
         let gravity = q.conjugate.rotate(Vector3(0, 0, -1))
         return MotionSample(timestamp: t, gravity: gravity, userAcceleration: .zero, rotationRate: rotation, attitude: q)
     }

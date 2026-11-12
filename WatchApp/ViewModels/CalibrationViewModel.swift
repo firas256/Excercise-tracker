@@ -36,6 +36,7 @@ final class CalibrationViewModel: ObservableObject {
             let phase = engine.phase
             DispatchQueue.main.async { self.apply(events, phase: phase, step: engine.stepIndex) }
         }
+        motion.simulationScenario = .calibration
         motion.start { [weak self] sample in
             guard let self else { return }
             let events = self.engine.ingest(sample)

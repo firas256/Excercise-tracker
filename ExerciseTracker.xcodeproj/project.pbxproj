@@ -79,6 +79,10 @@
 			isa = PBXBuildFile;
 			fileRef = 468DFEA0E8CA9AE5EFF7AB1F;
 		};
+		3D213F454248778733055D06 = {
+			isa = PBXBuildFile;
+			fileRef = 3FC7D8884D8F7094C246CE5B;
+		};
 		3D386DAED47691CD69181B76 = {
 			isa = PBXBuildFile;
 			fileRef = 78863E36B0E918BA3C0F8B87;
@@ -94,6 +98,10 @@
 		459649AD72F2F9F797C7AAB7 = {
 			isa = PBXBuildFile;
 			fileRef = A89C8E666E2530F08B3D70EF;
+		};
+		49B3E0E6751030FBB27DA6D3 = {
+			isa = PBXBuildFile;
+			fileRef = CAE52EF8215F278AE26FF1CA;
 		};
 		5776D37DFC5563C3FDC1E0D2 = {
 			isa = PBXBuildFile;
@@ -192,6 +200,10 @@
 			isa = PBXBuildFile;
 			fileRef = A506CDFFA6C2F8A49978DA07;
 		};
+		A7DC6B86D432F015E0E36E16 = {
+			isa = PBXBuildFile;
+			fileRef = 3FC7D8884D8F7094C246CE5B;
+		};
 		A97EA3D9ACF5DAF52E7A63E8 = {
 			isa = PBXBuildFile;
 			fileRef = D790A2B9BB34BF22E2E243CB;
@@ -223,6 +235,10 @@
 		CDB0794607CF225B2D0243D8 = {
 			isa = PBXBuildFile;
 			fileRef = 70355B960F0A982F0E44E887;
+		};
+		D2FBE3B10EA8CB91AEFEFD60 = {
+			isa = PBXBuildFile;
+			fileRef = AD355BE8DC0788C515E78509;
 		};
 		D690F341613AFE0AD007FF17 = {
 			isa = PBXBuildFile;
@@ -283,12 +299,26 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		90F9FE4B1003F94A690F8CF4 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E6803881BDAF3D439CBF6A68;
+			proxyType = 1;
+			remoteGlobalIDString = C772CAE6517A949878D0C2F0;
+			remoteInfo = "ExerciseTracker Watch App";
+		};
 		E3EC7277A5E67A5BB29535C2 = {
 			isa = PBXContainerItemProxy;
 			containerPortal = E6803881BDAF3D439CBF6A68;
 			proxyType = 1;
 			remoteGlobalIDString = C772CAE6517A949878D0C2F0;
 			remoteInfo = "ExerciseTracker Watch App";
+		};
+		F8C73ACF98D0F31370BCADF1 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E6803881BDAF3D439CBF6A68;
+			proxyType = 1;
+			remoteGlobalIDString = 53C201E9418A4974D389E639;
+			remoteInfo = ExerciseTracker;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -380,6 +410,12 @@
 			path = "ExerciseTracker Watch App.app";
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
+		3FC7D8884D8F7094C246CE5B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionScript.swift;
+			sourceTree = "<group>";
+		};
 		428DF43BC3364A34EBBF3D1D = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -470,6 +506,13 @@
 			path = ExerciseTracker.entitlements;
 			sourceTree = "<group>";
 		};
+		81F9E3CC9E0CD8ECD6D281DB = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = ExerciseTrackerWatchUITests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		8468E84833FEA41E96EBF1B2 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -481,6 +524,13 @@
 			lastKnownFileType = sourcecode.swift;
 			path = CoreMLExerciseClassifier.swift;
 			sourceTree = "<group>";
+		};
+		8A2A9AE3D49A2F08C60C345B = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.cfbundle;
+			includeInIndex = 0;
+			path = ExerciseTrackerUITests.xctest;
+			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		9DE14313DA1209117A7A4A5F = {
 			isa = PBXFileReference;
@@ -525,6 +575,12 @@
 			path = WorkoutSummaryView.swift;
 			sourceTree = "<group>";
 		};
+		AD355BE8DC0788C515E78509 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseTrackerWatchUITests.swift;
+			sourceTree = "<group>";
+		};
 		B1916F4BD518190284831020 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -547,6 +603,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = RepDetector.swift;
+			sourceTree = "<group>";
+		};
+		CAE52EF8215F278AE26FF1CA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseTrackerUITests.swift;
 			sourceTree = "<group>";
 		};
 		CBE8546071AEE57989E25997 = {
@@ -648,7 +710,21 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		143468C8A48A09B94A748711 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		43085BCD0037C8F2496C0D25 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A009BA799C0688D0DF0AD1FB = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -694,6 +770,8 @@
 			children = (
 				AAEC7EFCCE11D8F4F45BB14C,
 				3F2D09CD9FE61F764D614560,
+				8A2A9AE3D49A2F08C60C345B,
+				81F9E3CC9E0CD8ECD6D281DB,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -727,6 +805,7 @@
 				9D10A42589C8F5479091BEBD,
 				68E3AD3FD522A877A164FA5C,
 				A2D3116D977BD1F2313981FC,
+				E804F12295B1D384706FDA79,
 				D1F831BEDADE6D7706CCBA24,
 				2AC8BA37DAC32D5437812408,
 			);
@@ -753,6 +832,7 @@
 				F0DCADE2A52855DC9B58054A,
 				2A7FF3840B7911D34C84AE42,
 				FD84EF65D59AAD9C4BAA46E6,
+				3FC7D8884D8F7094C246CE5B,
 				B1916F4BD518190284831020,
 				BF4704760BEB475B7FD29822,
 				76783932CF00A24F85C87604,
@@ -791,6 +871,15 @@
 			);
 			path = iOSApp;
 			sourceTree = "<group>";
+		};
+		AF83A5789611F5836CCAC184 = {
+			isa = PBXGroup;
+			children = (
+				AD355BE8DC0788C515E78509,
+			);
+			path = Watch;
+			sourceTree = "<group>";
+			name = "Watch UI Tests";
 		};
 		B189CB0CF34BC6840EE789AF = {
 			isa = PBXGroup;
@@ -839,6 +928,24 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
+		E804F12295B1D384706FDA79 = {
+			isa = PBXGroup;
+			children = (
+				FDC4896B547B885B57F9E6E3,
+				AF83A5789611F5836CCAC184,
+			);
+			path = UITests;
+			sourceTree = "<group>";
+		};
+		FDC4896B547B885B57F9E6E3 = {
+			isa = PBXGroup;
+			children = (
+				CAE52EF8215F278AE26FF1CA,
+			);
+			path = iOS;
+			sourceTree = "<group>";
+			name = "iOS UI Tests";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -860,6 +967,42 @@
 			productName = ExerciseTracker;
 			productReference = AAEC7EFCCE11D8F4F45BB14C;
 			productType = "com.apple.product-type.application";
+		};
+		9DF687EB67307FD4D377E7E8 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1D6904B41EE15D1804EFE896;
+			buildPhases = (
+				6C4EC0CEE95D9BAF1FD1C8BD,
+				A009BA799C0688D0DF0AD1FB,
+				28439348763B04F5A0BC145D,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1F158E6F0AF201714D6CFCDD,
+			);
+			name = ExerciseTrackerWatchUITests;
+			productName = ExerciseTrackerWatchUITests;
+			productReference = 81F9E3CC9E0CD8ECD6D281DB;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		BA9366171BDF28D7C36848EB = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3F4B1161F54075E88820D2B1;
+			buildPhases = (
+				5C2D97A3CBBC32CF02DAEAE0,
+				143468C8A48A09B94A748711,
+				44A494BF025C37E094D2218D,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1E6DE7B1C855C4A5B9A0279F,
+			);
+			name = ExerciseTrackerUITests;
+			productName = ExerciseTrackerUITests;
+			productReference = 8A2A9AE3D49A2F08C60C345B;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 		C772CAE6517A949878D0C2F0 = {
 			isa = PBXNativeTarget;
@@ -894,6 +1037,14 @@
 					C772CAE6517A949878D0C2F0 = {
 						CreatedOnToolsVersion = 15.0;
 					};
+					BA9366171BDF28D7C36848EB = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = 53C201E9418A4974D389E639;
+					};
+					9DF687EB67307FD4D377E7E8 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = C772CAE6517A949878D0C2F0;
+					};
 				};
 			};
 			buildConfigurationList = 462C00A86DF6082A838A867D;
@@ -911,11 +1062,27 @@
 			targets = (
 				53C201E9418A4974D389E639,
 				C772CAE6517A949878D0C2F0,
+				BA9366171BDF28D7C36848EB,
+				9DF687EB67307FD4D377E7E8,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		28439348763B04F5A0BC145D = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		44A494BF025C37E094D2218D = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		B610843F57957E06C81D6C31 = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -952,6 +1119,7 @@
 				D690F341613AFE0AD007FF17,
 				73AE5E1EF1C92B6F0D451A27,
 				63432EF69D3E21D3451B32D3,
+				A7DC6B86D432F015E0E36E16,
 				9BCF9B9C17267E71702BF5B1,
 				8A492E43575CBBE166CC35B8,
 				02D457A93F262E33FA358305,
@@ -972,6 +1140,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5C2D97A3CBBC32CF02DAEAE0 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				49B3E0E6751030FBB27DA6D3,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		666B9954D19BB863E0FEBDA3 = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -989,6 +1165,7 @@
 				115364CEF4BE5E40C0F20539,
 				F7FAB58F564811D4E7D29B97,
 				B700EE427D3698F71621E1F8,
+				3D213F454248778733055D06,
 				05192A2DCD43AB5A9839AFA0,
 				426A00C444201A81DDE472B3,
 				6969F44A06CA5DDDABA5B299,
@@ -1013,9 +1190,27 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		6C4EC0CEE95D9BAF1FD1C8BD = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D2FBE3B10EA8CB91AEFEFD60,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1E6DE7B1C855C4A5B9A0279F = {
+			isa = PBXTargetDependency;
+			target = 53C201E9418A4974D389E639;
+			targetProxy = F8C73ACF98D0F31370BCADF1;
+		};
+		1F158E6F0AF201714D6CFCDD = {
+			isa = PBXTargetDependency;
+			target = C772CAE6517A949878D0C2F0;
+			targetProxy = 90F9FE4B1003F94A690F8CF4;
+		};
 		32D46C166439C5988631C798 = {
 			isa = PBXTargetDependency;
 			target = C772CAE6517A949878D0C2F0;
@@ -1024,6 +1219,42 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0F8D766ACED0FE031481E756 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTrackerUITests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ExerciseTracker;
+			};
+			name = Release;
+		};
+		18FE0B860CF5655E1000E467 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTrackerWatchUITests";
+				SDKROOT = watchos;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "ExerciseTracker Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 		454F82D6DE2C14D9DB00E656 = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1080,6 +1311,42 @@
 				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
+		};
+		7D75300C9B89985D8EA101F5 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTrackerUITests";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+				TEST_TARGET_NAME = ExerciseTracker;
+			};
+			name = Debug;
+		};
+		9A59A68C9B7F6CA4396148FC = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTrackerWatchUITests";
+				SDKROOT = watchos;
+				TARGETED_DEVICE_FAMILY = 4;
+				TEST_TARGET_NAME = "ExerciseTracker Watch App";
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
 		};
 		AC52DC8856A70427DBC5DDE2 = {
 			isa = XCBuildConfiguration;
@@ -1221,6 +1488,24 @@
 			buildConfigurations = (
 				AC52DC8856A70427DBC5DDE2,
 				EFEBB5F78AF863F6106B81CF,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1D6904B41EE15D1804EFE896 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9A59A68C9B7F6CA4396148FC,
+				18FE0B860CF5655E1000E467,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		3F4B1161F54075E88820D2B1 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7D75300C9B89985D8EA101F5,
+				0F8D766ACED0FE031481E756,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

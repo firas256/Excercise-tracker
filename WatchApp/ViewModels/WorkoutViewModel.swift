@@ -64,6 +64,7 @@ final class WorkoutViewModel: ObservableObject {
             self.tracker.lockedExercise = locked
             self.tracker.cancelSet()
         }
+        motion.simulationScenario = .workout
         motion.start { [weak self] sample in
             guard let self else { return }
             let events = self.tracker.ingest(profile.armSample(from: sample))

@@ -106,6 +106,12 @@ def collector(sources, resources):
 shared_group = group_for_dir("Shared", collector(shared_sources, []))
 ios_group = group_for_dir("iOSApp", collector(ios_sources, ios_resources))
 watch_group = group_for_dir("WatchApp", collector(watch_sources, watch_resources))
+ios_uitest_sources, watch_uitest_sources = [], []
+ios_uitest_group = group_for_dir("UITests/iOS", collector(ios_uitest_sources, []), name="iOS UI Tests")
+watch_uitest_group = group_for_dir("UITests/Watch", collector(watch_uitest_sources, []), name="Watch UI Tests")
+uitests_group = add(uid("group", "UITests"), {
+    "isa": "PBXGroup", "children": [ios_uitest_group, watch_uitest_group], "path": "UITests", "sourceTree": "<group>",
+})
 
 config_files = ["Base.xcconfig", "ExerciseTracker.entitlements", "WatchApp.entitlements", "iOS-Info.plist", "Watch-Info.plist"]
 config_refs = {f: file_ref(os.path.join("Config", f)) for f in config_files}
@@ -121,15 +127,26 @@ watch_product = add(uid("product", WATCH_TARGET), {
     "isa": "PBXFileReference", "explicitFileType": "wrapper.application", "includeInIndex": "0",
     "path": f"{WATCH_TARGET}.app", "sourceTree": "BUILT_PRODUCTS_DIR",
 })
+IOS_UITESTS = "ExerciseTrackerUITests"
+WATCH_UITESTS = "ExerciseTrackerWatchUITests"
+ios_uitest_product = add(uid("product", IOS_UITESTS), {
+    "isa": "PBXFileReference", "explicitFileType": "wrapper.cfbundle", "includeInIndex": "0",
+    "path": f"{IOS_UITESTS}.xctest", "sourceTree": "BUILT_PRODUCTS_DIR",
+})
+watch_uitest_product = add(uid("product", WATCH_UITESTS), {
+    "isa": "PBXFileReference", "explicitFileType": "wrapper.cfbundle", "includeInIndex": "0",
+    "path": f"{WATCH_UITESTS}.xctest", "sourceTree": "BUILT_PRODUCTS_DIR",
+})
 products_group = add(uid("group", "Products"), {
-    "isa": "PBXGroup", "children": [ios_product, watch_product], "name": "Products", "sourceTree": "<group>",
+    "isa": "PBXGroup", "children": [ios_product, watch_product, ios_uitest_product, watch_uitest_product],
+    "name": "Products", "sourceTree": "<group>",
 })
 readme_ref = add(uid("fileref", "README.md"), {
     "isa": "PBXFileReference", "lastKnownFileType": "net.daringfireball.markdown", "path": "README.md", "sourceTree": "<group>",
 })
 main_group = add(uid("group", "main"), {
     "isa": "PBXGroup",
-    "children": [readme_ref, shared_group, watch_group, ios_group, config_group, products_group],
+    "children": [readme_ref, shared_group, watch_group, ios_group, uitests_group, config_group, products_group],
     "sourceTree": "<group>",
 })
 
@@ -253,6 +270,65 @@ ios_target = add(uid("target", IOS_TARGET), {
     "productType": "com.apple.product-type.application",
 })
 
+
+
+def target_dependency(owner, target_id, target_name):
+    proxy_id = add(uid("proxy", owner, target_name), {
+        "isa": "PBXContainerItemProxy", "containerPortal": project_id, "proxyType": "1",
+        "remoteGlobalIDString": target_id, "remoteInfo": target_name,
+    })
+    return add(uid("dependency", owner, target_name), {
+        "isa": "PBXTargetDependency", "target": target_id, "targetProxy": proxy_id,
+    })
+
+
+uitest_common = {
+    "CODE_SIGN_STYLE": "Automatic",
+    "CURRENT_PROJECT_VERSION": "1",
+    "GENERATE_INFOPLIST_FILE": "YES",
+    "MARKETING_VERSION": "1.0",
+    "PRODUCT_NAME": "$(TARGET_NAME)",
+    "SWIFT_EMIT_LOC_STRINGS": "NO",
+    "SWIFT_VERSION": "5.0",
+}
+ios_uitest_settings = dict(uitest_common, **{
+    "IPHONEOS_DEPLOYMENT_TARGET": IOS_DEPLOYMENT,
+    "PRODUCT_BUNDLE_IDENTIFIER": "$(BUNDLE_ID_PREFIX).ExerciseTrackerUITests",
+    "SDKROOT": "iphoneos",
+    "TARGETED_DEVICE_FAMILY": "1",
+    "TEST_TARGET_NAME": IOS_TARGET,
+})
+watch_uitest_settings = dict(uitest_common, **{
+    "PRODUCT_BUNDLE_IDENTIFIER": "$(BUNDLE_ID_PREFIX).ExerciseTrackerWatchUITests",
+    "SDKROOT": "watchos",
+    "TARGETED_DEVICE_FAMILY": "4",
+    "TEST_TARGET_NAME": WATCH_TARGET,
+    "WATCHOS_DEPLOYMENT_TARGET": WATCH_DEPLOYMENT,
+})
+
+
+def uitest_target(name, settings, sources, product, app_target, app_name):
+    phases = [
+        build_phase("PBXSourcesBuildPhase", name, sources),
+        build_phase("PBXFrameworksBuildPhase", name, []),
+        build_phase("PBXResourcesBuildPhase", name, []),
+    ]
+    return add(uid("target", name), {
+        "isa": "PBXNativeTarget",
+        "buildConfigurationList": config_list("target:" + name, settings, settings),
+        "buildPhases": phases,
+        "buildRules": [],
+        "dependencies": [target_dependency(name, app_target, app_name)],
+        "name": name,
+        "productName": name,
+        "productReference": product,
+        "productType": "com.apple.product-type.bundle.ui-testing",
+    })
+
+
+ios_uitest_target = uitest_target(IOS_UITESTS, ios_uitest_settings, ios_uitest_sources, ios_uitest_product, ios_target, IOS_TARGET)
+watch_uitest_target = uitest_target(WATCH_UITESTS, watch_uitest_settings, watch_uitest_sources, watch_uitest_product, watch_target, WATCH_TARGET)
+
 project_common = {
     "ALWAYS_SEARCH_USER_PATHS": "NO",
     "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
@@ -298,6 +374,8 @@ add(project_id, {
         "TargetAttributes": {
             ios_target: {"CreatedOnToolsVersion": "15.0"},
             watch_target: {"CreatedOnToolsVersion": "15.0"},
+            ios_uitest_target: {"CreatedOnToolsVersion": "15.0", "TestTargetID": ios_target},
+            watch_uitest_target: {"CreatedOnToolsVersion": "15.0", "TestTargetID": watch_target},
         },
     },
     "buildConfigurationList": config_list("project:" + PROJECT, project_debug, project_release, base_ref=config_refs["Base.xcconfig"]),
@@ -309,7 +387,7 @@ add(project_id, {
     "productRefGroup": products_group,
     "projectDirPath": "",
     "projectRoot": "",
-    "targets": [ios_target, watch_target],
+    "targets": [ios_target, watch_target, ios_uitest_target, watch_uitest_target],
 })
 
 # ---- Write project.pbxproj (objects grouped by isa, like Xcode does) ----
@@ -336,7 +414,7 @@ with open(os.path.join(proj_dir, "project.xcworkspace", "contents.xcworkspacedat
 
 
 # ---- Shared schemes ----
-def scheme(target_id, target_name, runnable=True):
+def scheme(target_id, target_name, test_id=None, test_name=None):
     ref = (f'            <BuildableReference\n'
            f'               BuildableIdentifier = "primary"\n'
            f'               BlueprintIdentifier = "{target_id}"\n'
@@ -365,8 +443,19 @@ def scheme(target_id, target_name, runnable=True):
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      shouldAutocreateTestPlan = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "{test_id}"
+               BuildableName = "{test_name}.xctest"
+               BlueprintName = "{test_name}"
+               ReferencedContainer = "container:{PROJECT}.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"
@@ -406,8 +495,8 @@ def scheme(target_id, target_name, runnable=True):
 scheme_dir = os.path.join(proj_dir, "xcshareddata", "xcschemes")
 os.makedirs(scheme_dir, exist_ok=True)
 with open(os.path.join(scheme_dir, f"{IOS_TARGET}.xcscheme"), "w") as f:
-    f.write(scheme(ios_target, IOS_TARGET))
+    f.write(scheme(ios_target, IOS_TARGET, ios_uitest_target, IOS_UITESTS))
 with open(os.path.join(scheme_dir, f"{WATCH_TARGET}.xcscheme"), "w") as f:
-    f.write(scheme(watch_target, WATCH_TARGET))
+    f.write(scheme(watch_target, WATCH_TARGET, watch_uitest_target, WATCH_UITESTS))
 
 print(f"Wrote {proj_dir}: {len(shared_sources)} shared, {len(ios_sources)} iOS, {len(watch_sources)} watch sources")

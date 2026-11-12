@@ -53,6 +53,11 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
         Vector3(v.dot(forearmAxis), v.dot(palmAxis), v.dot(radialAxis))
     }
 
+    /// Inverse of `toArmFrame`: expresses an arm-frame vector in watch coordinates.
+    func toDeviceFrame(_ v: Vector3) -> Vector3 {
+        forearmAxis * v.x + palmAxis * v.y + radialAxis * v.z
+    }
+
     func armSample(from s: MotionSample) -> ArmSample {
         ArmSample(
             t: s.timestamp,

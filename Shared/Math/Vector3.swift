@@ -76,6 +76,27 @@ struct Quaternion: Codable, Equatable, Sendable {
         self.init(x: a.x * s, y: a.y * s, z: a.z * s, w: cos(angle / 2))
     }
 
+    /// Rotation whose matrix has the given columns (the images of the x, y and z axes).
+    init(rotationColumns c0: Vector3, _ c1: Vector3, _ c2: Vector3) {
+        let m00 = c0.x, m10 = c0.y, m20 = c0.z
+        let m01 = c1.x, m11 = c1.y, m21 = c1.z
+        let m02 = c2.x, m12 = c2.y, m22 = c2.z
+        let trace = m00 + m11 + m22
+        if trace > 0 {
+            let s = (trace + 1).squareRoot() * 2
+            self.init(x: (m21 - m12) / s, y: (m02 - m20) / s, z: (m10 - m01) / s, w: 0.25 * s)
+        } else if m00 > m11 && m00 > m22 {
+            let s = (1 + m00 - m11 - m22).squareRoot() * 2
+            self.init(x: 0.25 * s, y: (m01 + m10) / s, z: (m02 + m20) / s, w: (m21 - m12) / s)
+        } else if m11 > m22 {
+            let s = (1 + m11 - m00 - m22).squareRoot() * 2
+            self.init(x: (m01 + m10) / s, y: 0.25 * s, z: (m12 + m21) / s, w: (m02 - m20) / s)
+        } else {
+            let s = (1 + m22 - m00 - m11).squareRoot() * 2
+            self.init(x: (m02 + m20) / s, y: (m12 + m21) / s, z: 0.25 * s, w: (m10 - m01) / s)
+        }
+    }
+
     var conjugate: Quaternion { Quaternion(x: -x, y: -y, z: -z, w: w) }
 
     static func * (a: Quaternion, b: Quaternion) -> Quaternion {
