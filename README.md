@@ -57,6 +57,20 @@ open ExerciseTracker.xcodeproj
 
 Tip: the iPhone app has **Settings › Add demo workout** so you can explore the history screens (also works in the Simulator).
 
+### Try it in the Simulator (no devices needed)
+
+The Simulator has no motion sensors, so in the Simulator the watch app automatically plays **scripted
+motion** (`Shared/Processing/MotionScript.swift`): the five calibration poses, then a loop of real-looking
+sets – 8 bicep curls, 10 lateral raises, 8 shoulder presses – with rests in between. It runs through the
+real calibration, rep-counting, detection and feedback code, so you can watch the whole flow:
+
+1. Pick the **ExerciseTracker Watch App** scheme and an Apple Watch simulator, press **Run ▶︎**.
+2. Tap **Allow Access** (or **Not Now**), then **Start Workout**.
+3. Watch calibration complete itself, then the rep counter climb, the exercise guess appear and the set summary pop up.
+
+Optional launch arguments (Product › Scheme › Edit Scheme › Run › Arguments): `-simulationSpeed 3` plays
+it 3× faster, `-simulateMotion NO` turns the script off. On a real watch the real sensors are always used.
+
 ## 5. Using it
 
 1. On the watch: **Start Workout**.
@@ -120,6 +134,7 @@ WatchApp/                   watchOS app (CoreMotion, HealthKit, haptics, SwiftUI
 iOSApp/                     iPhone app (history, charts, settings, export)
 Config/                     Bundle-ID prefix, entitlements, Info.plist keys
 Tests/                      Unit tests for the core (simulated curls, presses, rows, …)
+UITests/                    iPhone + Watch UI tests (screenshots of every screen)
 ML/                         How to train your own Core ML model
 scripts/                    Project generator, icon generator
 ```
@@ -135,6 +150,12 @@ swift test
 They simulate physically consistent arm motion for 13 exercises and check rep counts, tempo, range of
 motion, partial-rep/rushed-rep feedback, calibration for different ways of wearing the watch, and
 classification. GitHub Actions runs these tests and builds both apps on every push.
+
+**UI tests** (`UITests/`) click through every iPhone screen and run a complete watch workout in the
+Simulator (calibration → live reps → set summary → second set → end workout), attaching a screenshot of
+each step. Run them with **⌘U** on the *ExerciseTracker* (iPhone simulator) or *ExerciseTracker Watch App*
+(watch simulator) scheme, or on GitHub via **Actions › Simulator UI tests › Run workflow** – the
+screenshots are uploaded as the `ui-screenshots` artifact.
 
 ## 10. Troubleshooting
 
