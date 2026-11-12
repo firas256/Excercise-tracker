@@ -22,16 +22,18 @@ struct CalibrationView: View {
                     ZStack {
                         progressRing
                         Image(systemName: model.pose.symbolName)
-                            .font(.system(size: 30))
+                            .font(.system(size: 24))
                     }
-                    .frame(width: 64, height: 64)
+                    .frame(width: 52, height: 52)
                     Text(model.pose.title)
                         .font(.headline)
+                    // Status sits right under the title so it's visible without scrolling.
+                    statusLine
                     Text(model.pose.instruction)
                         .font(.footnote)
+                        .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .fixedSize(horizontal: false, vertical: true)
-                    statusLine
                     HStack {
                         Button("Skip") { model.skipStep() }
                         if app.calibration != nil {
@@ -75,13 +77,13 @@ struct CalibrationView: View {
     @ViewBuilder private var statusLine: some View {
         switch model.phase {
         case .waitingForMovement:
-            Text("Move into position…").foregroundStyle(.secondary).font(.caption2)
+            Text("Move into position…").foregroundStyle(.orange).font(.footnote.bold())
         case .waitingForStillness:
-            Text("Now hold still").foregroundStyle(.yellow).font(.caption2)
+            Text("Now hold still").foregroundStyle(.yellow).font(.footnote.bold())
         case .holding:
-            Text("Holding…").foregroundStyle(.green).font(.caption2)
+            Text("Holding…").foregroundStyle(.green).font(.footnote.bold())
         case .wrongPose(let message):
-            Text(message).foregroundStyle(.orange).font(.caption2).multilineTextAlignment(.center)
+            Text(message).foregroundStyle(.red).font(.footnote.bold()).multilineTextAlignment(.center)
         case .finished:
             EmptyView()
         }

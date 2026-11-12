@@ -31,11 +31,17 @@ struct SetReviewView: View {
                     }
 
                     Stepper(value: $reps, in: 0...200) {
-                        Text("\(reps) reps").font(.title3.bold())
+                        Text("\(reps) reps").font(.title3.bold()).lineLimit(1).minimumScaleFactor(0.6)
                     }
 
-                    Stepper(value: $weight, in: 0...500, step: WatchSettings.weightUnit == "kg" ? 2.5 : 5) {
-                        Text(weight > 0 ? "\(weight, specifier: "%g") \(WatchSettings.weightUnit)" : "No weight")
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Weight").font(.caption2).foregroundStyle(.secondary)
+                        Stepper(value: $weight, in: 0...500, step: WatchSettings.weightUnit == "kg" ? 2.5 : 5) {
+                            Text(weight > 0 ? "\(weight, specifier: "%g") \(WatchSettings.weightUnit)" : "– \(WatchSettings.weightUnit)")
+                                .font(.title3.bold())
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
+                        }
                     }
 
                     scoreRow

@@ -43,8 +43,8 @@ final class ExerciseTrackerUITests: XCTestCase {
         let getStarted = app.buttons["Get Started"]
         XCTAssertTrue(getStarted.waitForExistence(timeout: 5))
         getStarted.tap()
-        XCTAssertTrue(app.staticTexts["No workouts yet"].waitForExistence(timeout: 10))
-        snap(app, "ios-04-empty-dashboard")
+        XCTAssertTrue(app.staticTexts["Rep Coach"].waitForExistence(timeout: 10))
+        snap(app, "ios-04-after-onboarding")
     }
 
     func testDemoWorkoutScreens() {
@@ -78,10 +78,10 @@ final class ExerciseTrackerUITests: XCTestCase {
         snap(app, "ios-25-set-reps")
 
         openTab(app, "Exercises")
-        let pulldown = app.staticTexts["Lat Pulldown"]
-        XCTAssertTrue(pulldown.waitForExistence(timeout: 5))
+        let curlRow = app.staticTexts["Bicep Curl"].firstMatch
+        XCTAssertTrue(curlRow.waitForExistence(timeout: 5))
         snap(app, "ios-30-exercise-library")
-        pulldown.tap()
+        curlRow.tap()
         XCTAssertTrue(app.staticTexts["Form cue"].waitForExistence(timeout: 5))
         snap(app, "ios-31-exercise-detail")
 

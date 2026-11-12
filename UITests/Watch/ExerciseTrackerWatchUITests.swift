@@ -18,7 +18,7 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
 
     private func scrollUntilHittable(_ element: XCUIElement, in app: XCUIApplication) {
         var attempts = 0
-        while !element.isHittable && attempts < 8 {
+        while element.exists && !element.isHittable && attempts < 8 {
             app.swipeUp()
             attempts += 1
         }
@@ -34,7 +34,7 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
 
     func testCalibrationAndWorkoutWithSimulatedMotion() {
         let app = XCUIApplication()
-        app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "2"]
+        app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "3"]
         app.launch()
 
         let start = app.buttons["Start Workout"]
@@ -59,27 +59,32 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         XCTAssertTrue(guess.waitForExistence(timeout: 40), "exercise guess never appeared")
         snap(app, "watch-07-live-reps")
 
-        // Set summary after the rest period.
+        // Set summary after the rest period (the script rests ~25 s before the next set).
         let save = app.buttons["Save Set"]
         XCTAssertTrue(save.waitForExistence(timeout: 60), "set summary never appeared")
         snap(app, "watch-08-set-summary")
         app.swipeUp()
         snap(app, "watch-09-set-summary-feedback")
         scrollUntilHittable(save, in: app)
+        XCTAssertEqual(app.state, .runningForeground, "app state: \(app.state.rawValue)")
         snap(app, "watch-10-set-summary-bottom")
         save.tap()
 
         XCTAssertTrue(app.staticTexts["Set 2"].waitForExistence(timeout: 10))
         snap(app, "watch-11-rest")
+        // The next scripted set (lateral raises) starts on its own.
+        let nextGuess = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Raise'")).firstMatch
+        XCTAssertTrue(nextGuess.waitForExistence(timeout: 60), "second set was not detected")
+        snap(app, "watch-12-second-set")
 
         // Controls page → end the workout.
         app.swipeRight()
         let end = app.buttons["End Workout"]
         XCTAssertTrue(end.waitForExistence(timeout: 10))
-        snap(app, "watch-12-controls")
+        snap(app, "watch-13-controls")
         scrollUntilHittable(end, in: app)
         end.tap()
         XCTAssertTrue(app.staticTexts["Workout complete"].waitForExistence(timeout: 10))
-        snap(app, "watch-13-summary")
+        snap(app, "watch-14-summary")
     }
 }
