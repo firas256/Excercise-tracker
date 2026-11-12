@@ -17,6 +17,11 @@ final class WorkoutStore: ObservableObject {
         documents = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0]
         load()
         refreshTrainingCounts()
+        // `-demoWorkout YES` launch argument: preload a demo workout (Simulator / screenshots).
+        if UserDefaults.standard.bool(forKey: "demoWorkout"), workouts.isEmpty {
+            add(DemoData.makeWorkout(daysAgo: 0))
+            add(DemoData.makeWorkout(daysAgo: 2))
+        }
     }
 
     // MARK: Workouts

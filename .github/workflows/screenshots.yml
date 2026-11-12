@@ -1,0 +1,64 @@
+name: Simulator screenshots
+
+# Launches both apps in the Simulator (catches crashes at launch) and uploads screenshots.
+on:
+  workflow_dispatch:
+
+jobs:
+  screenshots:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Pick simulators
+        run: |
+          xcrun simctl list devices available
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json, subprocess
+          d = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))["devices"]
+          def pick(platform, prefix):
+              for runtime in sorted(d, reverse=True):
+                  if platform in runtime:
+                      for dev in d[runtime]:
+                          if dev["name"].startswith(prefix):
+                              return dev["udid"]
+          print("PHONE=" + pick("iOS", "iPhone"))
+          print("WATCH=" + (pick("watchOS", "Apple Watch") or ""))
+          PY
+      - name: Build for Simulator
+        run: |
+          xcodebuild -project ExerciseTracker.xcodeproj -scheme ExerciseTracker -destination "id=$PHONE" \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO -quiet build
+          xcodebuild -project ExerciseTracker.xcodeproj -scheme "ExerciseTracker Watch App" -destination "id=$WATCH" \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO -quiet build
+      - name: iPhone screenshots
+        run: |
+          mkdir -p shots
+          xcrun simctl boot "$PHONE"
+          xcrun simctl bootstatus "$PHONE"
+          xcrun simctl install "$PHONE" build/Build/Products/Debug-iphonesimulator/ExerciseTracker.app
+          xcrun simctl launch "$PHONE" com.firas256.ExerciseTracker
+          sleep 8
+          xcrun simctl io "$PHONE" screenshot shots/iphone-onboarding.png
+          xcrun simctl terminate "$PHONE" com.firas256.ExerciseTracker
+          xcrun simctl launch "$PHONE" com.firas256.ExerciseTracker -onboardingComplete YES -demoWorkout YES
+          sleep 10
+          xcrun simctl io "$PHONE" screenshot shots/iphone-dashboard.png
+          xcrun simctl spawn "$PHONE" log show --last 2m --predicate 'process == "ExerciseTracker"' --style compact | tail -40 || true
+      - name: Watch screenshots
+        if: env.WATCH != ''
+        run: |
+          xcrun simctl boot "$WATCH"
+          xcrun simctl bootstatus "$WATCH"
+          xcrun simctl install "$WATCH" "build/Build/Products/Debug-watchsimulator/ExerciseTracker Watch App.app"
+          xcrun simctl launch "$WATCH" com.firas256.ExerciseTracker.watchkitapp
+          sleep 8
+          xcrun simctl io "$WATCH" screenshot shots/watch-onboarding.png
+          xcrun simctl terminate "$WATCH" com.firas256.ExerciseTracker.watchkitapp
+          xcrun simctl launch "$WATCH" com.firas256.ExerciseTracker.watchkitapp -watchOnboarded YES
+          sleep 8
+          xcrun simctl io "$WATCH" screenshot shots/watch-home.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: screenshots
+          path: shots/
