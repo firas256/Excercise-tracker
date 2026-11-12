@@ -10,6 +10,8 @@ An Apple Watch + iPhone app that uses the watch's **accelerometer and gyroscope*
 
 Everything runs on-device. No account, no server.
 
+![iPhone app: dashboard, workout, set feedback and per-rep charts (iOS Simulator)](docs/iphone.jpg)
+
 ---
 
 ## 1. What you need
