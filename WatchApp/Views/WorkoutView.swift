@@ -119,7 +119,7 @@ struct WorkoutControlsView: View {
                     if session.activeEnergy > 0 {
                         Text("\(Int(session.activeEnergy)) kcal")
                     }
-                    Text("\(workout.completedSets.count) sets")
+                    Text(workout.completedSets.count == 1 ? "1 set" : "\(workout.completedSets.count) sets")
                 }
                 .font(.footnote)
                 .foregroundStyle(.secondary)

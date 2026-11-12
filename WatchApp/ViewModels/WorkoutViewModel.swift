@@ -75,6 +75,9 @@ final class WorkoutViewModel: ObservableObject {
 
     func stop() {
         motion.stop()
+        // A set still in progress (workout ended right after the last rep) is kept, not dropped.
+        let events = motion.queue.sync { tracker.finishSet() }
+        events.forEach(handle)
         if pendingSet != nil { confirmPendingSet(exercise: nil, reps: nil, weight: nil) }
         status = .waitingForSet
     }

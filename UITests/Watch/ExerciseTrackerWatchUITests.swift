@@ -85,6 +85,10 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         scrollUntilHittable(end, in: app)
         end.tap()
         XCTAssertTrue(app.staticTexts["Workout complete"].waitForExistence(timeout: 10))
+        // The set that was still in progress when the workout ended must be kept.
+        XCTAssertTrue(app.staticTexts["Bicep Curl"].exists)
+        XCTAssertTrue(app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Raise'")).firstMatch.exists,
+                      "in-progress set was dropped when ending the workout")
         snap(app, "watch-14-summary")
     }
 }
