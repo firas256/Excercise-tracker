@@ -114,6 +114,7 @@ final class WorkoutViewModel: ObservableObject {
                 confirmPendingSet(exercise: nil, reps: nil, weight: nil)
                 status = .inSet
                 candidates = []
+                repCount = 0
             }
             restStartedAt = nil
             let increased = count > repCount
