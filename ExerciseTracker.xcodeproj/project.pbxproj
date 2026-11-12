@@ -1,0 +1,1249 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02D457A93F262E33FA358305 = {
+			isa = PBXBuildFile;
+			fileRef = 76783932CF00A24F85C87604;
+		};
+		04582BC32784D75A4D28E275 = {
+			isa = PBXBuildFile;
+			fileRef = 6B20A9483B40F74F093E5D09;
+		};
+		05192A2DCD43AB5A9839AFA0 = {
+			isa = PBXBuildFile;
+			fileRef = B1916F4BD518190284831020;
+		};
+		08A93531F2E02C734C7B25D2 = {
+			isa = PBXBuildFile;
+			fileRef = E41BDB6347B166A7B16DA3E6;
+		};
+		115364CEF4BE5E40C0F20539 = {
+			isa = PBXBuildFile;
+			fileRef = F0DCADE2A52855DC9B58054A;
+		};
+		1349F60DDBCC99A002995563 = {
+			isa = PBXBuildFile;
+			fileRef = 5531A0400C24F00A0C3222D7;
+		};
+		189884D58E458AD8A869C3E7 = {
+			isa = PBXBuildFile;
+			fileRef = 34BAB1CA28CB5A8EEC3A6A6C;
+		};
+		18F436FBA5E9F0F9A4F5B031 = {
+			isa = PBXBuildFile;
+			fileRef = 16DDD35D8698F0AAF0E45463;
+		};
+		1D49A27E5EC5586BED0ACF8B = {
+			isa = PBXBuildFile;
+			fileRef = F2F53C5DAA6E578830C61A18;
+		};
+		21E55E8ADDBAE4AC458F783B = {
+			isa = PBXBuildFile;
+			fileRef = D848BB0E0AC1F95211332CAC;
+		};
+		2A653E69BA0489081D4574E8 = {
+			isa = PBXBuildFile;
+			fileRef = 88B6578368D8852CC0AD83DA;
+		};
+		2E37EAECBC0137A6CD014957 = {
+			isa = PBXBuildFile;
+			fileRef = E3E040D7414BC0E292F6ABFA;
+		};
+		2E52718EB5C0B02CCDFE8DE2 = {
+			isa = PBXBuildFile;
+			fileRef = 9DE14313DA1209117A7A4A5F;
+		};
+		308BDE44DA8A071F5596F3CE = {
+			isa = PBXBuildFile;
+			fileRef = AAF6C1058C424A76474B6582;
+		};
+		345DB7ADA3ABC19B1937F0D9 = {
+			isa = PBXBuildFile;
+			fileRef = 1478ED0B0FB99AF38EA8C3B7;
+		};
+		36CFA73FF78FCC2017E945A8 = {
+			isa = PBXBuildFile;
+			fileRef = 70D725A379B9F18BBBB5B927;
+		};
+		36D8C72B179311BA1D1E418D = {
+			isa = PBXBuildFile;
+			fileRef = 1A9E2A7531B78DD4E06D417A;
+		};
+		37A2F75A111B3F69E750EEC5 = {
+			isa = PBXBuildFile;
+			fileRef = 468DFEA0E8CA9AE5EFF7AB1F;
+		};
+		3D386DAED47691CD69181B76 = {
+			isa = PBXBuildFile;
+			fileRef = 78863E36B0E918BA3C0F8B87;
+		};
+		408A6B8516075A6784955EC4 = {
+			isa = PBXBuildFile;
+			fileRef = 5AE7288EB921614EBD9F2FD9;
+		};
+		426A00C444201A81DDE472B3 = {
+			isa = PBXBuildFile;
+			fileRef = BF4704760BEB475B7FD29822;
+		};
+		459649AD72F2F9F797C7AAB7 = {
+			isa = PBXBuildFile;
+			fileRef = A89C8E666E2530F08B3D70EF;
+		};
+		5776D37DFC5563C3FDC1E0D2 = {
+			isa = PBXBuildFile;
+			fileRef = D848BB0E0AC1F95211332CAC;
+		};
+		5B5BB7A90DAD4A9F7EFBFD0C = {
+			isa = PBXBuildFile;
+			fileRef = 34DC1D79280CDA8A211BAA73;
+		};
+		5F1F44E5D0E6D4EFC51C95F9 = {
+			isa = PBXBuildFile;
+			fileRef = 70D725A379B9F18BBBB5B927;
+		};
+		618A81028FAF875CA7F004F1 = {
+			isa = PBXBuildFile;
+			fileRef = 65160FE46602A42A0D1A2B8B;
+		};
+		63432EF69D3E21D3451B32D3 = {
+			isa = PBXBuildFile;
+			fileRef = FD84EF65D59AAD9C4BAA46E6;
+		};
+		6969F44A06CA5DDDABA5B299 = {
+			isa = PBXBuildFile;
+			fileRef = 76783932CF00A24F85C87604;
+		};
+		71EAE53D9057ABBB2FEE0FE4 = {
+			isa = PBXBuildFile;
+			fileRef = D4E8DF3D7305AB2707E076A2;
+		};
+		737FA349100F1665D43F8EE7 = {
+			isa = PBXBuildFile;
+			fileRef = 252BA1379B28159ABFC69CFB;
+		};
+		73AE5E1EF1C92B6F0D451A27 = {
+			isa = PBXBuildFile;
+			fileRef = 2A7FF3840B7911D34C84AE42;
+		};
+		7915589366CEC674DA19B580 = {
+			isa = PBXBuildFile;
+			fileRef = 2404E5FEB31580C67DA9CD22;
+		};
+		87FD081C924A62989167481E = {
+			isa = PBXBuildFile;
+			fileRef = DC2D6206BB98D646211E6281;
+		};
+		88E7B2A075D5C027460C3617 = {
+			isa = PBXBuildFile;
+			fileRef = FEEDCD3716CA9191AC26102B;
+		};
+		8A492E43575CBBE166CC35B8 = {
+			isa = PBXBuildFile;
+			fileRef = BF4704760BEB475B7FD29822;
+		};
+		98CBD35DDCBBA303D77867E2 = {
+			isa = PBXBuildFile;
+			fileRef = 6A916D50322F912060CD42EA;
+		};
+		9B063EFCCF3E2C82E1B4AD89 = {
+			isa = PBXBuildFile;
+			fileRef = ED9645CF4CA60CF798933344;
+		};
+		9BCF9B9C17267E71702BF5B1 = {
+			isa = PBXBuildFile;
+			fileRef = B1916F4BD518190284831020;
+		};
+		9D894EF2FE37C6C8164BE03E = {
+			isa = PBXBuildFile;
+			fileRef = 428DF43BC3364A34EBBF3D1D;
+		};
+		A0537ECBAFC47C7F555E5444 = {
+			isa = PBXBuildFile;
+			fileRef = 30654F4A067D4B8FE0EFC2CE;
+		};
+		A0E733EEF06412A4BEF4A565 = {
+			isa = PBXBuildFile;
+			fileRef = 0265A1907C4B1240AE592678;
+		};
+		A26EA01612BA353DF5AAB704 = {
+			isa = PBXBuildFile;
+			fileRef = 9DE14313DA1209117A7A4A5F;
+		};
+		A4BEF313ACCB533FB9E26752 = {
+			isa = PBXBuildFile;
+			fileRef = 68D3CAF9AB9BF745651C236A;
+		};
+		A4C44FAF0B04E41BE0334502 = {
+			isa = PBXBuildFile;
+			fileRef = 3F2D09CD9FE61F764D614560;
+			settings = {
+				ATTRIBUTES = (
+					RemoveHeadersOnCopy,
+				);
+			};
+		};
+		A63C0292BF92D71FB3967235 = {
+			isa = PBXBuildFile;
+			fileRef = A506CDFFA6C2F8A49978DA07;
+		};
+		A97EA3D9ACF5DAF52E7A63E8 = {
+			isa = PBXBuildFile;
+			fileRef = D790A2B9BB34BF22E2E243CB;
+		};
+		AB4E60D4C6ADAA02819A05B9 = {
+			isa = PBXBuildFile;
+			fileRef = CBE8546071AEE57989E25997;
+		};
+		AF5AEF8FE0F83BC32CABA895 = {
+			isa = PBXBuildFile;
+			fileRef = 5AE7288EB921614EBD9F2FD9;
+		};
+		B700EE427D3698F71621E1F8 = {
+			isa = PBXBuildFile;
+			fileRef = FD84EF65D59AAD9C4BAA46E6;
+		};
+		C433A1F46D4CC8E3B81DE104 = {
+			isa = PBXBuildFile;
+			fileRef = E3E040D7414BC0E292F6ABFA;
+		};
+		C4AC1023D9A9C21F55278574 = {
+			isa = PBXBuildFile;
+			fileRef = 8468E84833FEA41E96EBF1B2;
+		};
+		CC55E707EFCBAD59062FF274 = {
+			isa = PBXBuildFile;
+			fileRef = F25182B7EE2C807826EFB8BE;
+		};
+		CDB0794607CF225B2D0243D8 = {
+			isa = PBXBuildFile;
+			fileRef = 70355B960F0A982F0E44E887;
+		};
+		D690F341613AFE0AD007FF17 = {
+			isa = PBXBuildFile;
+			fileRef = F0DCADE2A52855DC9B58054A;
+		};
+		DBC3B3F7BC560EDD38CA91BB = {
+			isa = PBXBuildFile;
+			fileRef = 70355B960F0A982F0E44E887;
+		};
+		DE29D89F9B84A5A03E9D9942 = {
+			isa = PBXBuildFile;
+			fileRef = F2F53C5DAA6E578830C61A18;
+		};
+		E0999610EF53F0DE94B68213 = {
+			isa = PBXBuildFile;
+			fileRef = A639767CDA2974FAA4A6CECF;
+		};
+		E467C3105D0A3ADB7D9D32D4 = {
+			isa = PBXBuildFile;
+			fileRef = 1478ED0B0FB99AF38EA8C3B7;
+		};
+		E88DE7A230EFF965E7266ECC = {
+			isa = PBXBuildFile;
+			fileRef = 468DFEA0E8CA9AE5EFF7AB1F;
+		};
+		E972E27BFC06D7AA058A058F = {
+			isa = PBXBuildFile;
+			fileRef = B1E4CCDB16362161C8CF1B0E;
+		};
+		EB7189DBD2DE09D0873FD553 = {
+			isa = PBXBuildFile;
+			fileRef = D4E8DF3D7305AB2707E076A2;
+		};
+		EE083CA6B5834DE3654DAD5D = {
+			isa = PBXBuildFile;
+			fileRef = 68D3CAF9AB9BF745651C236A;
+		};
+		F38DFD417D140E609BD43785 = {
+			isa = PBXBuildFile;
+			fileRef = B518FA7B29CE26852DE7AE39;
+		};
+		F3DCD94AF0B5819C547F1E88 = {
+			isa = PBXBuildFile;
+			fileRef = A171E1A3D978FC9CC3D044F2;
+		};
+		F7FAB58F564811D4E7D29B97 = {
+			isa = PBXBuildFile;
+			fileRef = 2A7FF3840B7911D34C84AE42;
+		};
+		FD849178838F07158C0A7E9A = {
+			isa = PBXBuildFile;
+			fileRef = 6A49E2E01731F81F3C1C0117;
+		};
+		FEBA3347CFF8422FD19E0F07 = {
+			isa = PBXBuildFile;
+			fileRef = E41BDB6347B166A7B16DA3E6;
+		};
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E3EC7277A5E67A5BB29535C2 = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E6803881BDAF3D439CBF6A68;
+			proxyType = 1;
+			remoteGlobalIDString = C772CAE6517A949878D0C2F0;
+			remoteInfo = "ExerciseTracker Watch App";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		B3534F1D04A026907CACEAE6 = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "$(CONTENTS_FOLDER_PATH)/Watch";
+			dstSubfolderSpec = 16;
+			files = (
+				A4C44FAF0B04E41BE0334502,
+			);
+			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0265A1907C4B1240AE592678 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = OnboardingView.swift;
+			sourceTree = "<group>";
+		};
+		1478ED0B0FB99AF38EA8C3B7 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SyncPayloads.swift;
+			sourceTree = "<group>";
+		};
+		16DDD35D8698F0AAF0E45463 = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.assetcatalog;
+			path = Assets.xcassets;
+			sourceTree = "<group>";
+		};
+		1A9E2A7531B78DD4E06D417A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SettingsView.swift;
+			sourceTree = "<group>";
+		};
+		2404E5FEB31580C67DA9CD22 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ContentView.swift;
+			sourceTree = "<group>";
+		};
+		252BA1379B28159ABFC69CFB = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = DemoData.swift;
+			sourceTree = "<group>";
+		};
+		2A7FF3840B7911D34C84AE42 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = FeedbackEngine.swift;
+			sourceTree = "<group>";
+		};
+		2F46FCB0070D5C1F7629770B = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = "iOS-Info.plist";
+			sourceTree = "<group>";
+		};
+		30654F4A067D4B8FE0EFC2CE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Components.swift;
+			sourceTree = "<group>";
+		};
+		34BAB1CA28CB5A8EEC3A6A6C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseTrackerApp.swift;
+			sourceTree = "<group>";
+		};
+		34DC1D79280CDA8A211BAA73 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CalibrationViewModel.swift;
+			sourceTree = "<group>";
+		};
+		3F2D09CD9FE61F764D614560 = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = "ExerciseTracker Watch App.app";
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		428DF43BC3364A34EBBF3D1D = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WatchStore.swift;
+			sourceTree = "<group>";
+		};
+		468DFEA0E8CA9AE5EFF7AB1F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutModels.swift;
+			sourceTree = "<group>";
+		};
+		4C903298EC4F78B9BDDDD2F0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = WatchApp.entitlements;
+			sourceTree = "<group>";
+		};
+		5531A0400C24F00A0C3222D7 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WatchConnectivityService.swift;
+			sourceTree = "<group>";
+		};
+		5AE7288EB921614EBD9F2FD9 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CalibrationProfile.swift;
+			sourceTree = "<group>";
+		};
+		65160FE46602A42A0D1A2B8B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseTrackerWatchApp.swift;
+			sourceTree = "<group>";
+		};
+		68D3CAF9AB9BF745651C236A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SyntheticMotion.swift;
+			sourceTree = "<group>";
+		};
+		6A49E2E01731F81F3C1C0117 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SetReviewView.swift;
+			sourceTree = "<group>";
+		};
+		6A916D50322F912060CD42EA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = HealthPermissionService.swift;
+			sourceTree = "<group>";
+		};
+		6B20A9483B40F74F093E5D09 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExercisePickerView.swift;
+			sourceTree = "<group>";
+		};
+		70355B960F0A982F0E44E887 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExercisePrototypes.swift;
+			sourceTree = "<group>";
+		};
+		70D725A379B9F18BBBB5B927 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseType.swift;
+			sourceTree = "<group>";
+		};
+		76783932CF00A24F85C87604 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SetAnalyzer.swift;
+			sourceTree = "<group>";
+		};
+		78863E36B0E918BA3C0F8B87 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutSessionService.swift;
+			sourceTree = "<group>";
+		};
+		7BD4E88912718F7B1BF6022D = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.entitlements;
+			path = ExerciseTracker.entitlements;
+			sourceTree = "<group>";
+		};
+		8468E84833FEA41E96EBF1B2 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutView.swift;
+			sourceTree = "<group>";
+		};
+		88B6578368D8852CC0AD83DA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CoreMLExerciseClassifier.swift;
+			sourceTree = "<group>";
+		};
+		9DE14313DA1209117A7A4A5F = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = SignalMath.swift;
+			sourceTree = "<group>";
+		};
+		A171E1A3D978FC9CC3D044F2 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutStore.swift;
+			sourceTree = "<group>";
+		};
+		A506CDFFA6C2F8A49978DA07 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseLibraryView.swift;
+			sourceTree = "<group>";
+		};
+		A639767CDA2974FAA4A6CECF = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.assetcatalog;
+			path = Assets.xcassets;
+			sourceTree = "<group>";
+		};
+		A89C8E666E2530F08B3D70EF = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = RootView.swift;
+			sourceTree = "<group>";
+		};
+		AAEC7EFCCE11D8F4F45BB14C = {
+			isa = PBXFileReference;
+			explicitFileType = wrapper.application;
+			includeInIndex = 0;
+			path = ExerciseTracker.app;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		AAF6C1058C424A76474B6582 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutSummaryView.swift;
+			sourceTree = "<group>";
+		};
+		B1916F4BD518190284831020 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionSignals.swift;
+			sourceTree = "<group>";
+		};
+		B1E4CCDB16362161C8CF1B0E = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = HistoryView.swift;
+			sourceTree = "<group>";
+		};
+		B518FA7B29CE26852DE7AE39 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Haptics.swift;
+			sourceTree = "<group>";
+		};
+		BF4704760BEB475B7FD29822 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = RepDetector.swift;
+			sourceTree = "<group>";
+		};
+		CBE8546071AEE57989E25997 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CalibrationView.swift;
+			sourceTree = "<group>";
+		};
+		D4E8DF3D7305AB2707E076A2 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionSample.swift;
+			sourceTree = "<group>";
+		};
+		D790A2B9BB34BF22E2E243CB = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionService.swift;
+			sourceTree = "<group>";
+		};
+		D848BB0E0AC1F95211332CAC = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CalibrationEngine.swift;
+			sourceTree = "<group>";
+		};
+		DC2D6206BB98D646211E6281 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = DashboardView.swift;
+			sourceTree = "<group>";
+		};
+		E3E040D7414BC0E292F6ABFA = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = MotionFeatures.swift;
+			sourceTree = "<group>";
+		};
+		E41BDB6347B166A7B16DA3E6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = ExerciseClassifier.swift;
+			sourceTree = "<group>";
+		};
+		E7AEA088B29165D21F57AE78 = {
+			isa = PBXFileReference;
+			lastKnownFileType = net.daringfireball.markdown;
+			path = README.md;
+			sourceTree = "<group>";
+		};
+		ED9645CF4CA60CF798933344 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WorkoutViewModel.swift;
+			sourceTree = "<group>";
+		};
+		EDDD65EBCAA1E161722198A0 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.plist.xml;
+			path = "Watch-Info.plist";
+			sourceTree = "<group>";
+		};
+		F0DCADE2A52855DC9B58054A = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = FeatureExtractor.swift;
+			sourceTree = "<group>";
+		};
+		F25182B7EE2C807826EFB8BE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = PhoneConnectivityService.swift;
+			sourceTree = "<group>";
+		};
+		F2F53C5DAA6E578830C61A18 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Vector3.swift;
+			sourceTree = "<group>";
+		};
+		FD84EF65D59AAD9C4BAA46E6 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = LiveSetTracker.swift;
+			sourceTree = "<group>";
+		};
+		FEEDCD3716CA9191AC26102B = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = WatchSettingsView.swift;
+			sourceTree = "<group>";
+		};
+		FFD87C325CDAD01B9E70C770 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xcconfig;
+			path = Base.xcconfig;
+			sourceTree = "<group>";
+		};
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		43085BCD0037C8F2496C0D25 = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D8C3D7979EDE4762C9A8B38B = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0BEDF99DB1058F57950463CE = {
+			isa = PBXGroup;
+			children = (
+				252BA1379B28159ABFC69CFB,
+				6A916D50322F912060CD42EA,
+				F25182B7EE2C807826EFB8BE,
+				A171E1A3D978FC9CC3D044F2,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		2853F7BC3CCF346282E99830 = {
+			isa = PBXGroup;
+			children = (
+				88B6578368D8852CC0AD83DA,
+				B518FA7B29CE26852DE7AE39,
+				D790A2B9BB34BF22E2E243CB,
+				5531A0400C24F00A0C3222D7,
+				428DF43BC3364A34EBBF3D1D,
+				78863E36B0E918BA3C0F8B87,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		2AC8BA37DAC32D5437812408 = {
+			isa = PBXGroup;
+			children = (
+				AAEC7EFCCE11D8F4F45BB14C,
+				3F2D09CD9FE61F764D614560,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		3B0A385BD42C67B1EC8FF7A4 = {
+			isa = PBXGroup;
+			children = (
+				30654F4A067D4B8FE0EFC2CE,
+				2404E5FEB31580C67DA9CD22,
+				DC2D6206BB98D646211E6281,
+				A506CDFFA6C2F8A49978DA07,
+				B1E4CCDB16362161C8CF1B0E,
+				0265A1907C4B1240AE592678,
+				1A9E2A7531B78DD4E06D417A,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		46BA0B5AD785B84160618244 = {
+			isa = PBXGroup;
+			children = (
+				1478ED0B0FB99AF38EA8C3B7,
+			);
+			path = Sync;
+			sourceTree = "<group>";
+		};
+		4EAE695AD1F489F78EA3E1C6 = {
+			isa = PBXGroup;
+			children = (
+				E7AEA088B29165D21F57AE78,
+				9D10A42589C8F5479091BEBD,
+				68E3AD3FD522A877A164FA5C,
+				A2D3116D977BD1F2313981FC,
+				D1F831BEDADE6D7706CCBA24,
+				2AC8BA37DAC32D5437812408,
+			);
+			sourceTree = "<group>";
+		};
+		68E3AD3FD522A877A164FA5C = {
+			isa = PBXGroup;
+			children = (
+				2853F7BC3CCF346282E99830,
+				B1B062FA99B282C9F0CFA5D8,
+				B189CB0CF34BC6840EE789AF,
+				A639767CDA2974FAA4A6CECF,
+				65160FE46602A42A0D1A2B8B,
+			);
+			path = WatchApp;
+			sourceTree = "<group>";
+		};
+		73056B850F1D8EB82CDBE46A = {
+			isa = PBXGroup;
+			children = (
+				D848BB0E0AC1F95211332CAC,
+				E41BDB6347B166A7B16DA3E6,
+				70355B960F0A982F0E44E887,
+				F0DCADE2A52855DC9B58054A,
+				2A7FF3840B7911D34C84AE42,
+				FD84EF65D59AAD9C4BAA46E6,
+				B1916F4BD518190284831020,
+				BF4704760BEB475B7FD29822,
+				76783932CF00A24F85C87604,
+				68D3CAF9AB9BF745651C236A,
+			);
+			path = Processing;
+			sourceTree = "<group>";
+		};
+		7FDB909D0D3AABA94A688E11 = {
+			isa = PBXGroup;
+			children = (
+				9DE14313DA1209117A7A4A5F,
+				F2F53C5DAA6E578830C61A18,
+			);
+			path = Math;
+			sourceTree = "<group>";
+		};
+		9D10A42589C8F5479091BEBD = {
+			isa = PBXGroup;
+			children = (
+				7FDB909D0D3AABA94A688E11,
+				E25C57D89030905C11A6F0CB,
+				73056B850F1D8EB82CDBE46A,
+				46BA0B5AD785B84160618244,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		A2D3116D977BD1F2313981FC = {
+			isa = PBXGroup;
+			children = (
+				0BEDF99DB1058F57950463CE,
+				3B0A385BD42C67B1EC8FF7A4,
+				16DDD35D8698F0AAF0E45463,
+				34BAB1CA28CB5A8EEC3A6A6C,
+			);
+			path = iOSApp;
+			sourceTree = "<group>";
+		};
+		B189CB0CF34BC6840EE789AF = {
+			isa = PBXGroup;
+			children = (
+				CBE8546071AEE57989E25997,
+				6B20A9483B40F74F093E5D09,
+				A89C8E666E2530F08B3D70EF,
+				6A49E2E01731F81F3C1C0117,
+				FEEDCD3716CA9191AC26102B,
+				AAF6C1058C424A76474B6582,
+				8468E84833FEA41E96EBF1B2,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		B1B062FA99B282C9F0CFA5D8 = {
+			isa = PBXGroup;
+			children = (
+				34DC1D79280CDA8A211BAA73,
+				ED9645CF4CA60CF798933344,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		D1F831BEDADE6D7706CCBA24 = {
+			isa = PBXGroup;
+			children = (
+				FFD87C325CDAD01B9E70C770,
+				7BD4E88912718F7B1BF6022D,
+				4C903298EC4F78B9BDDDD2F0,
+				2F46FCB0070D5C1F7629770B,
+				EDDD65EBCAA1E161722198A0,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		E25C57D89030905C11A6F0CB = {
+			isa = PBXGroup;
+			children = (
+				5AE7288EB921614EBD9F2FD9,
+				70D725A379B9F18BBBB5B927,
+				E3E040D7414BC0E292F6ABFA,
+				D4E8DF3D7305AB2707E076A2,
+				468DFEA0E8CA9AE5EFF7AB1F,
+			);
+			path = Model;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		53C201E9418A4974D389E639 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 008322845482E318172E4E8F;
+			buildPhases = (
+				0F0937FEA538F73DD0A74E3A,
+				43085BCD0037C8F2496C0D25,
+				F99D979112A77A731BEA1F0A,
+				B3534F1D04A026907CACEAE6,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				32D46C166439C5988631C798,
+			);
+			name = ExerciseTracker;
+			productName = ExerciseTracker;
+			productReference = AAEC7EFCCE11D8F4F45BB14C;
+			productType = "com.apple.product-type.application";
+		};
+		C772CAE6517A949878D0C2F0 = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9AD8B503816720CBCCD5A0D9;
+			buildPhases = (
+				666B9954D19BB863E0FEBDA3,
+				D8C3D7979EDE4762C9A8B38B,
+				B610843F57957E06C81D6C31,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "ExerciseTracker Watch App";
+			productName = "ExerciseTracker Watch App";
+			productReference = 3F2D09CD9FE61F764D614560;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		E6803881BDAF3D439CBF6A68 = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					53C201E9418A4974D389E639 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+					C772CAE6517A949878D0C2F0 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 462C00A86DF6082A838A867D;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 4EAE695AD1F489F78EA3E1C6;
+			productRefGroup = 2AC8BA37DAC32D5437812408;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				53C201E9418A4974D389E639,
+				C772CAE6517A949878D0C2F0,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		B610843F57957E06C81D6C31 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E0999610EF53F0DE94B68213,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		F99D979112A77A731BEA1F0A = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				18F436FBA5E9F0F9A4F5B031,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0F0937FEA538F73DD0A74E3A = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A26EA01612BA353DF5AAB704,
+				1D49A27E5EC5586BED0ACF8B,
+				AF5AEF8FE0F83BC32CABA895,
+				5F1F44E5D0E6D4EFC51C95F9,
+				2E37EAECBC0137A6CD014957,
+				71EAE53D9057ABBB2FEE0FE4,
+				E88DE7A230EFF965E7266ECC,
+				5776D37DFC5563C3FDC1E0D2,
+				FEBA3347CFF8422FD19E0F07,
+				DBC3B3F7BC560EDD38CA91BB,
+				D690F341613AFE0AD007FF17,
+				73AE5E1EF1C92B6F0D451A27,
+				63432EF69D3E21D3451B32D3,
+				9BCF9B9C17267E71702BF5B1,
+				8A492E43575CBBE166CC35B8,
+				02D457A93F262E33FA358305,
+				EE083CA6B5834DE3654DAD5D,
+				E467C3105D0A3ADB7D9D32D4,
+				737FA349100F1665D43F8EE7,
+				98CBD35DDCBBA303D77867E2,
+				CC55E707EFCBAD59062FF274,
+				F3DCD94AF0B5819C547F1E88,
+				A0537ECBAFC47C7F555E5444,
+				7915589366CEC674DA19B580,
+				87FD081C924A62989167481E,
+				A63C0292BF92D71FB3967235,
+				E972E27BFC06D7AA058A058F,
+				A0E733EEF06412A4BEF4A565,
+				36D8C72B179311BA1D1E418D,
+				189884D58E458AD8A869C3E7,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		666B9954D19BB863E0FEBDA3 = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2E52718EB5C0B02CCDFE8DE2,
+				DE29D89F9B84A5A03E9D9942,
+				408A6B8516075A6784955EC4,
+				36CFA73FF78FCC2017E945A8,
+				C433A1F46D4CC8E3B81DE104,
+				EB7189DBD2DE09D0873FD553,
+				37A2F75A111B3F69E750EEC5,
+				21E55E8ADDBAE4AC458F783B,
+				08A93531F2E02C734C7B25D2,
+				CDB0794607CF225B2D0243D8,
+				115364CEF4BE5E40C0F20539,
+				F7FAB58F564811D4E7D29B97,
+				B700EE427D3698F71621E1F8,
+				05192A2DCD43AB5A9839AFA0,
+				426A00C444201A81DDE472B3,
+				6969F44A06CA5DDDABA5B299,
+				A4BEF313ACCB533FB9E26752,
+				345DB7ADA3ABC19B1937F0D9,
+				2A653E69BA0489081D4574E8,
+				F38DFD417D140E609BD43785,
+				A97EA3D9ACF5DAF52E7A63E8,
+				1349F60DDBCC99A002995563,
+				9D894EF2FE37C6C8164BE03E,
+				3D386DAED47691CD69181B76,
+				5B5BB7A90DAD4A9F7EFBFD0C,
+				9B063EFCCF3E2C82E1B4AD89,
+				AB4E60D4C6ADAA02819A05B9,
+				04582BC32784D75A4D28E275,
+				459649AD72F2F9F797C7AAB7,
+				FD849178838F07158C0A7E9A,
+				88E7B2A075D5C027460C3617,
+				308BDE44DA8A071F5596F3CE,
+				C4AC1023D9A9C21F55278574,
+				618A81028FAF875CA7F004F1,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		32D46C166439C5988631C798 = {
+			isa = PBXTargetDependency;
+			target = C772CAE6517A949878D0C2F0;
+			targetProxy = E3EC7277A5E67A5BB29535C2;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		454F82D6DE2C14D9DB00E656 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+			baseConfigurationReference = FFD87C325CDAD01B9E70C770;
+		};
+		6D6937FCE99F57CE9282205F = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				CODE_SIGN_ENTITLEMENTS = Config/WatchApp.entitlements;
+				INFOPLIST_FILE = "Config/Watch-Info.plist";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_ID_PREFIX).ExerciseTracker";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTracker.watchkitapp";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
+		AC52DC8856A70427DBC5DDE2 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				CODE_SIGN_ENTITLEMENTS = Config/ExerciseTracker.entitlements;
+				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTracker";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		DFFC1C56B632F6914BFF57A0 = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_FAST_MATH = YES;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+			baseConfigurationReference = FFD87C325CDAD01B9E70C770;
+		};
+		EFEBB5F78AF863F6106B81CF = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				CODE_SIGN_ENTITLEMENTS = Config/ExerciseTracker.entitlements;
+				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTracker";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		FC2CD52484873CC273DF1BBE = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				CODE_SIGN_ENTITLEMENTS = Config/WatchApp.entitlements;
+				INFOPLIST_FILE = "Config/Watch-Info.plist";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = "$(BUNDLE_ID_PREFIX).ExerciseTracker";
+				PRODUCT_BUNDLE_IDENTIFIER = "$(BUNDLE_ID_PREFIX).ExerciseTracker.watchkitapp";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		008322845482E318172E4E8F = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AC52DC8856A70427DBC5DDE2,
+				EFEBB5F78AF863F6106B81CF,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		462C00A86DF6082A838A867D = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DFFC1C56B632F6914BFF57A0,
+				454F82D6DE2C14D9DB00E656,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9AD8B503816720CBCCD5A0D9 = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FC2CD52484873CC273DF1BBE,
+				6D6937FCE99F57CE9282205F,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = E6803881BDAF3D439CBF6A68;
+}

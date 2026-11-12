@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  core-tests:
+    name: Motion core unit tests
+    runs-on: ubuntu-latest
+    container: swift:6.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: swift test
+        run: swift test
+
+  build-apps:
+    name: Build iPhone + Watch apps
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode version and SDKs
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks
+      - name: Build iPhone app (embeds the Watch app)
+        run: |
+          xcodebuild -project ExerciseTracker.xcodeproj -scheme ExerciseTracker \
+            -configuration Debug -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet build
+      - name: Build Watch app on its own
+        run: |
+          xcodebuild -project ExerciseTracker.xcodeproj -scheme "ExerciseTracker Watch App" \
+            -configuration Debug -destination 'generic/platform=watchOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet build

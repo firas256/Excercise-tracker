@@ -1,0 +1,60 @@
+import Foundation
+
+/// Builds a realistic demo workout by running the real analysis pipeline on simulated motion,
+/// so the app can be explored before the first watch workout (or in the Simulator).
+enum DemoData {
+    static func makeWorkout(daysAgo: Int = 1) -> WorkoutRecord {
+        let start = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
+        var t = start
+        var sets: [SetRecord] = []
+
+        func addSet(_ exercise: ExerciseType, weight: Double, configure: (inout SyntheticMotion.Options) -> Void) {
+            var options = SyntheticMotion.Options()
+            options.seed = UInt64(sets.count + 1)
+            configure(&options)
+            guard let samples = SyntheticMotion.generate(exercise, options: options) else { return }
+            let analysis = SetAnalyzer().analyze(samples)
+            let known = SetAnalyzer().analyze(samples, lockedExercise: exercise)
+            let duration = SyntheticMotion.duration(options)
+            sets.append(SetRecord(
+                id: UUID(),
+                exercise: exercise,
+                detectedExercise: analysis.candidates.first?.exercise,
+                detectionConfidence: analysis.confidence,
+                alternatives: Array(analysis.candidates.prefix(3)),
+                userCorrectedExercise: analysis.candidates.first?.exercise != exercise,
+                repCount: analysis.repCount,
+                detectedRepCount: analysis.repCount,
+                reps: known.reps,
+                feedback: known.feedback,
+                signal: analysis.detection?.signal ?? exercise.preferredSignal,
+                weight: weight,
+                weightUnit: "kg",
+                startDate: t,
+                endDate: t.addingTimeInterval(duration),
+                features: analysis.features
+            ))
+            t = t.addingTimeInterval(duration + 90)
+        }
+
+        addSet(.bicepCurl, weight: 12.5) { $0.reps = 10 }
+        addSet(.bicepCurl, weight: 12.5) {
+            $0.reps = 8
+            $0.amplitudes = [1, 1, 1, 1, 1, 0.9, 0.7, 0.6]
+        }
+        addSet(.shoulderPress, weight: 16) {
+            $0.reps = 8
+            $0.eccentric = 0.6
+        }
+        addSet(.lateralRaise, weight: 8) { $0.reps = 12 }
+        addSet(.seatedCableRow, weight: 45) { $0.reps = 10 }
+        addSet(.tricepsPushdown, weight: 25) {
+            $0.reps = 12
+            $0.concentric = 0.9
+            $0.eccentric = 1.8
+        }
+
+        return WorkoutRecord(id: UUID(), startDate: start, endDate: t, sets: sets,
+                             averageHeartRate: 118, activeEnergyKilocalories: 145, calibratedAt: start)
+    }
+}
