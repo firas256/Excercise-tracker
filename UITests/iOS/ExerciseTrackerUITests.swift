@@ -26,7 +26,7 @@ final class ExerciseTrackerUITests: XCTestCase {
 
     func testOnboardingFlow() {
         let app = XCUIApplication()
-        app.launchArguments = ["-onboardingComplete", "NO"]
+        app.launchArguments = ["-resetOnboarding"]
         app.launch()
 
         XCTAssertTrue(app.staticTexts["Rep Coach"].waitForExistence(timeout: 15))
@@ -43,7 +43,7 @@ final class ExerciseTrackerUITests: XCTestCase {
         let getStarted = app.buttons["Get Started"]
         XCTAssertTrue(getStarted.waitForExistence(timeout: 5))
         getStarted.tap()
-        XCTAssertTrue(app.staticTexts["Rep Coach"].waitForExistence(timeout: 10))
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 10) || app.buttons["Today"].exists)
         snap(app, "ios-04-after-onboarding")
     }
 

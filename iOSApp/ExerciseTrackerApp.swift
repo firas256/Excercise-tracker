@@ -11,6 +11,10 @@ struct ExerciseTrackerApp: App {
     @AppStorage("onboardingComplete") private var onboardingComplete = false
 
     init() {
+        // `-resetOnboarding` (UI tests): start from the first-launch experience.
+        if ProcessInfo.processInfo.arguments.contains("-resetOnboarding") {
+            UserDefaults.standard.removeObject(forKey: "onboardingComplete")
+        }
         let store = WorkoutStore()
         _store = StateObject(wrappedValue: store)
         _connectivity = StateObject(wrappedValue: PhoneConnectivityService(store: store))

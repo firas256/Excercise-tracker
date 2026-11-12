@@ -42,8 +42,8 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         snap(app, "watch-01-home")
         start.tap()
 
-        // Guided calibration: each pose is detected from the scripted motion.
-        XCTAssertTrue(app.staticTexts["Arms down"].waitForExistence(timeout: 10))
+        // Guided calibration (scripted motion plays in real time): each pose is detected automatically.
+        XCTAssertTrue(app.staticTexts["Arms down"].waitForExistence(timeout: 15))
         snap(app, "watch-02-calibration-arms-down")
         XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 20))
         snap(app, "watch-03-calibration-arm-forward")

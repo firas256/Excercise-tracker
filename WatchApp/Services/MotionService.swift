@@ -82,7 +82,9 @@ final class MotionService {
     private func startSimulation(rate: Double) {
         isRunning = true
         let scenario = simulationScenario
-        let speed = max(1, Int(UserDefaults.standard.double(forKey: "simulationSpeed").rounded()))
+        // Calibration always plays in real time so each pose can be followed on screen.
+        let requested = max(1, Int(UserDefaults.standard.double(forKey: "simulationSpeed").rounded()))
+        let speed = scenario == .calibration ? 1 : requested
         queue.async {
             self.simulationTimer?.cancel()
             let script = MotionScript.samples(for: scenario, rate: rate)
