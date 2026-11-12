@@ -10,7 +10,11 @@ An Apple Watch + iPhone app that uses the watch's **accelerometer and gyroscope*
 
 Everything runs on-device. No account, no server.
 
+![Watch app: calibration, live rep count with exercise guess, set summary, second set, workout summary (watchOS Simulator)](docs/watch.jpg)
+
 ![iPhone app: dashboard, workout, set feedback and per-rep charts (iOS Simulator)](docs/iphone.jpg)
+
+*Screenshots from the automated Simulator UI tests (the watch runs on scripted motion there).*
 
 ---
 
