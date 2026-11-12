@@ -167,6 +167,29 @@ final class CalibrationEngineTests: XCTestCase {
         }
     }
 
+    func testFirstPoseWaitsQuietlyWhileUserReadsTheScreen() {
+        let f = Vector3(1, 0, 0), p = Vector3(0, 0, -1)
+        let engine = CalibrationEngine()
+        var events = engine.start()
+        var t = 0.0
+        // Arm raised, looking at the watch, perfectly still for 4 s: no complaint, no capture.
+        for _ in 0..<200 {
+            events += engine.ingest(sample(t: t, forearmDev: f, palmDev: p, forearmWorld: Vector3(0.3, 0.9, 0.3).normalized, palmWorld: Vector3(0, 0, -1)))
+            t += 0.02
+        }
+        XCTAssertFalse(events.contains { if case .wrongPose = $0 { return true }; if case .poseCaptured = $0 { return true }; return false }, "\(events)")
+        // Lower the arm and hold: captured.
+        for _ in 0..<40 {
+            events += engine.ingest(sample(t: t, forearmDev: f, palmDev: p, forearmWorld: Vector3(0, 0, -1), palmWorld: Vector3(0, 1, 0), rotation: Vector3(0, 2, 0)))
+            t += 0.02
+        }
+        for _ in 0..<120 {
+            events += engine.ingest(sample(t: t, forearmDev: f, palmDev: p, forearmWorld: Vector3(0, 0, -1), palmWorld: Vector3(0, 1, 0)))
+            t += 0.02
+        }
+        XCTAssertTrue(events.contains(.poseCaptured(.armsDown)), "\(events)")
+    }
+
     func testWrongPoseIsReported() {
         // Arm only half raised in the "forward" step.
         let half = ArmPose(forearm: Vector3(0.7, 0, -0.7).normalized, palm: Vector3(-0.7, 0, -0.7).normalized)

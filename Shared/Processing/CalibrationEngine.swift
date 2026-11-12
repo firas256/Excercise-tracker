@@ -167,6 +167,13 @@ final class CalibrationEngine {
                 let g = (holdGravity / Double(holdCount)).normalized
                 let attitude = holdAttitude[holdAttitude.count / 2]
                 if let problem = validateAndStore(pose: pose, gravity: g, attitude: attitude) {
+                    // First pose: the user is probably still reading the instruction with the arm
+                    // raised. Keep waiting quietly until they have actually moved.
+                    if pose == .armsDown && !wrongPoseReported && movedSinceCapture < settings.movementNeeded {
+                        phase = .waitingForStillness
+                        holdStart = nil
+                        return events
+                    }
                     // Accept on the second attempt so a user with an unusual setup is never stuck.
                     if wrongPoseReported {
                         forceStore(pose: pose, gravity: g, attitude: attitude)

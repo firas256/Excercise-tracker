@@ -17,7 +17,6 @@ enum Haptics {
     /// Calibration complete.
     static func calibrationDone() { play(.notification) }
 
-    static func setStarted() { play(.start) }
     static func goodRep() { play(.click) }
     static func flaggedRep() { play(.retry) }
     static func setFinished() { play(.stop) }

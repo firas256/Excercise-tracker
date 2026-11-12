@@ -16,9 +16,21 @@ struct WorkoutView: View {
             .tag(2)
         }
         .tabViewStyle(.page)
-        .sheet(item: $workout.pendingSet) { pending in
+        .sheet(item: pendingBinding) { pending in
             SetReviewView(pending: pending)
         }
+    }
+
+    /// Dismissing the summary (swipe / close button) keeps the set with the detected values.
+    private var pendingBinding: Binding<WorkoutViewModel.PendingSet?> {
+        Binding(
+            get: { workout.pendingSet },
+            set: { newValue in
+                if newValue == nil, workout.pendingSet != nil {
+                    workout.confirmPendingSet(exercise: nil, reps: nil, weight: nil)
+                }
+            }
+        )
     }
 }
 

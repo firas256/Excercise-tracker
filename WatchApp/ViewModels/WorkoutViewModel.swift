@@ -99,16 +99,23 @@ final class WorkoutViewModel: ObservableObject {
     private func handle(_ event: TrackerEvent) {
         switch event {
         case .setStarted:
-            // Starting the next set auto-saves an unreviewed one.
-            if pendingSet != nil { confirmPendingSet(exercise: nil, reps: nil, weight: nil) }
-            status = .inSet
-            repCount = 0
-            liveCue = nil
-            candidates = []
-            restStartedAt = nil
+            // Movement started. This may still be a false start (e.g. lowering the arm), so the
+            // rest timer, an open set summary and haptics are only touched once reps are detected.
+            if pendingSet == nil {
+                status = .inSet
+                repCount = 0
+                liveCue = nil
+                candidates = []
+            }
             setStartWallClock = Date()
-            Haptics.setStarted()
         case .repsUpdated(let count, let lastRep):
+            if pendingSet != nil {
+                // A new set really started: auto-save the unreviewed one.
+                confirmPendingSet(exercise: nil, reps: nil, weight: nil)
+                status = .inSet
+                candidates = []
+            }
+            restStartedAt = nil
             let increased = count > repCount
             repCount = count
             if let rep = lastRep {
@@ -124,15 +131,18 @@ final class WorkoutViewModel: ObservableObject {
         case .setCompleted(let set):
             Haptics.setFinished()
             let duration = set.endTime - set.startTime
+            if pendingSet != nil { confirmPendingSet(exercise: nil, reps: nil, weight: nil) }
             pendingSet = PendingSet(completed: set, startDate: setStartWallClock,
                                     endDate: setStartWallClock.addingTimeInterval(duration))
             candidates = set.analysis.candidates
             repCount = set.analysis.repCount
             status = .reviewing
         case .setDiscarded:
-            status = .waitingForSet
-            repCount = 0
-            liveCue = nil
+            if pendingSet == nil {
+                status = .waitingForSet
+                repCount = 0
+                liveCue = nil
+            }
         }
     }
 
