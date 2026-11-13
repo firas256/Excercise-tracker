@@ -1,9 +1,13 @@
 // Shared build settings for both apps.
 //
-// BUNDLE_ID_PREFIX must be unique to you. If Xcode says the bundle identifier is not available,
-// change it here (e.g. com.yourname) – both the iPhone and Watch app identifiers derive from it.
+// Don't edit this file for signing. Put your own values in Config/Local.xcconfig instead
+// (copy Config/Local.xcconfig.example). That file is ignored by git, so `git pull` never
+// conflicts with it, and Xcode doesn't need to change the shared project file.
+
+// Both the iPhone and Watch app identifiers derive from this prefix.
 BUNDLE_ID_PREFIX = com.firas256
 
-// Optional: your Apple Developer Team ID (10 characters, see developer.apple.com/account).
-// You can also just pick your team in Xcode under Signing & Capabilities.
+// Your Apple Developer Team ID – set it in Config/Local.xcconfig.
 DEVELOPMENT_TEAM =
+
+#include? "Local.xcconfig"

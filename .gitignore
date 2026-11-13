@@ -15,3 +15,6 @@ Package.resolved
 # macOS
 .DS_Store
 __pycache__/
+
+# Personal signing settings
+Config/Local.xcconfig

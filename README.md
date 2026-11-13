@@ -43,15 +43,40 @@ open ExerciseTracker.xcodeproj
 
 ## 3. Signing (one time)
 
-1. In Xcode, click the blue **ExerciseTracker** project in the left sidebar.
-2. Select the **ExerciseTracker** target → **Signing & Capabilities** → choose your **Team** (add your Apple ID under Xcode › Settings › Accounts if needed).
-3. Do the same for the **ExerciseTracker Watch App** target.
-4. If Xcode says the bundle identifier is not available, open `Config/Base.xcconfig` and change `BUNDLE_ID_PREFIX = com.firas256` to something unique (e.g. `com.yourname.reps`). Both apps derive their IDs from it.
+Put your signing settings in a small private file, so updating the project never conflicts with them:
+
+1. Copy `Config/Local.xcconfig.example` to `Config/Local.xcconfig` (same folder).
+2. Replace `ABCDE12345` with your **Team ID** (10 characters). Find it in Xcode › Settings › Accounts ›
+   your Apple ID › team, or by running
+   `security find-certificate -c "Apple Development" -p | openssl x509 -noout -subject` (the value after `OU=`).
+3. If Xcode ever says the bundle identifier is not available, also set `BUNDLE_ID_PREFIX` there
+   (e.g. `com.yourname.reps`).
+
+Add your Apple ID under Xcode › Settings › Accounts if you haven't. Then the **ExerciseTracker** and
+**ExerciseTracker Watch App** targets show your team under Signing & Capabilities automatically – no need
+to pick it there (picking it in Xcode edits the shared project file, which makes `git pull` complain).
 
 > **Free Apple ID and HealthKit:** if signing fails with a HealthKit/provisioning error, remove the
 > **HealthKit** capability from *both* targets (Signing & Capabilities → click the ✕ next to HealthKit).
 > The app keeps working: it switches to an extended-runtime session to keep the sensors on, it just
-> won't record heart rate or save to the Health app.
+> won't record heart rate, save to the Health app, or start the watch workout from the iPhone.
+
+### Updating to a new version
+
+```bash
+git pull
+```
+
+If git says *"Please commit your changes or stash them before you merge"*, Xcode changed the project
+file (usually because a Team was picked in Xcode). Put those edits aside and update:
+
+```bash
+git stash
+```
+
+```bash
+git pull
+```
 
 ## 4. Run it on your devices
 

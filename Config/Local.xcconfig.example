@@ -1,0 +1,11 @@
+// Copy this file to Config/Local.xcconfig (same folder) and fill in your values.
+// Local.xcconfig is ignored by git, so updating the project with `git pull` never touches it.
+
+// Your Apple Developer Team ID: 10 letters/digits. With a free Apple ID this is your "Personal Team".
+// Find it in Xcode > Settings > Accounts > (your Apple ID) > the team, or run in Terminal:
+//   security find-certificate -c "Apple Development" -p | openssl x509 -noout -subject
+// and use the value after "OU=".
+DEVELOPMENT_TEAM = ABCDE12345
+
+// Only needed if Xcode said the bundle identifier is not available:
+// BUNDLE_ID_PREFIX = com.yourname.reps
