@@ -27,7 +27,10 @@ jobs:
           print("WATCH=" + pick("watchOS", "Apple Watch"))
           PY
           cat "$GITHUB_ENV"
+      # Both test steps may fail without stopping the job (so screenshots are always exported);
+      # the last step then fails the job if either did.
       - name: iPhone UI tests
+        id: iphone
         timeout-minutes: 25
         continue-on-error: true
         run: |
@@ -35,7 +38,16 @@ jobs:
           xcodebuild test -project ExerciseTracker.xcodeproj -scheme ExerciseTracker \
             -destination "id=$PHONE" -resultBundlePath results/iphone.xcresult \
             CODE_SIGNING_ALLOWED=NO 2>&1 | grep -E "Test Case|error:|XCTAssert|\*\* TEST" ; exit ${PIPESTATUS[0]}
+      - name: Free the machine for the Watch simulator
+        if: always()
+        run: |
+          # A booted iPhone simulator competes for CPU; a cold watch simulator can time out on the
+          # first app launch. Shut one down and fully boot the other first.
+          xcrun simctl shutdown "$PHONE" || true
+          xcrun simctl boot "$WATCH" || true
+          xcrun simctl bootstatus "$WATCH" -b || true
       - name: Watch UI tests
+        id: watch
         timeout-minutes: 25
         continue-on-error: true
         run: |
@@ -63,3 +75,8 @@ jobs:
         with:
           name: ui-screenshots
           path: preview/
+      - name: Fail if any UI test failed
+        if: always()
+        run: |
+          echo "iPhone UI tests: ${{ steps.iphone.outcome }}, Watch UI tests: ${{ steps.watch.outcome }}"
+          test "${{ steps.iphone.outcome }}" = "success" && test "${{ steps.watch.outcome }}" = "success"

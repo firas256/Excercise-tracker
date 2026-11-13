@@ -8,6 +8,12 @@ final class ExerciseTrackerUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// Don't leave an animating demo running in the Simulator (it slows down the Watch tests that run next).
+    override func tearDown() {
+        XCUIApplication().terminate()
+        super.tearDown()
+    }
+
     private func snap(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
@@ -160,9 +166,12 @@ final class ExerciseTrackerUITests: XCTestCase {
         snap(app, "ios-31-exercise-detail")
 
         openTab(app, "Settings")
-        let howItWorks = app.buttons["How Rep Coach works"]
-        XCTAssertTrue(howItWorks.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         snap(app, "ios-40-settings")
+        // The demo's sensor recordings add a training-data section, so the link sits further down.
+        let howItWorks = app.buttons["How Rep Coach works"]
+        for _ in 0..<6 where !(howItWorks.exists && howItWorks.isHittable) { app.swipeUp() }
+        XCTAssertTrue(howItWorks.waitForExistence(timeout: 5))
         howItWorks.tap()
         XCTAssertTrue(app.staticTexts["Calibration"].waitForExistence(timeout: 5))
         snap(app, "ios-41-how-it-works")
