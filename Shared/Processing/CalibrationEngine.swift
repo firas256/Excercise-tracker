@@ -102,6 +102,12 @@ final class CalibrationEngine {
     private var overhead: Double?
     private var resting: Double?
     private var noise: [Double] = []
+    /// Vertical acceleration (m/s², as delivered) since the last captured pose, for measuring how far
+    /// the hand rose while moving into the next pose.
+    private var transit: [Double] = []
+    private var transitDt = 0.02
+    /// Net hand rise (m) over the lifting transitions, in the delivered acceleration's sign.
+    private var riseEvidence = 0.0
     /// +1 if `attitude.rotate` maps device → world, -1 if the conjugate does (decided from gravity).
     private var attitudeConvention: Double?
 
@@ -131,6 +137,11 @@ final class CalibrationEngine {
         accEMA = a * s.userAcceleration.length + (1 - a) * accEMA
         movedSinceCapture += s.rotationRate.length * dt
         if attitudeConvention == nil { attitudeConvention = detectConvention(s) }
+        if s.gravity.length > 0.5 {
+            transit.append(-s.userAcceleration.dot(s.gravity.normalized) * 9.80665)
+            if transit.count > 1500 { transit.removeFirst(transit.count - 1500) }
+            transitDt = 0.9 * transitDt + 0.1 * dt
+        }
 
         let still = rotEMA < settings.stillRotation && accEMA < settings.stillAcceleration
         var events: [CalibrationEvent] = []
@@ -186,6 +197,10 @@ final class CalibrationEngine {
                     }
                 }
                 noise.append(SignalMath.mean(holdNoise))
+                if pose == .armForward || pose == .armOverhead {
+                    // The hand rose by roughly an arm's length; the velocity is zero at both still ends.
+                    riseEvidence += SignalMath.zeroVelocityDisplacement(transit, from: 0, to: transit.count, dt: transitDt)
+                }
                 events.append(contentsOf: advance(from: pose))
             }
         case .finished:
@@ -206,6 +221,7 @@ final class CalibrationEngine {
         movedSinceCapture = 0
         wrongPoseReported = false
         holdStart = nil
+        transit.removeAll()
         if let next = currentPose {
             phase = .waitingForMovement
             events.append(.stepStarted(next))
@@ -296,7 +312,8 @@ final class CalibrationEngine {
             restingElevation: resting ?? -88,
             supinationRange: supination ?? 170,
             stillnessNoise: noise.isEmpty ? 0.03 : SignalMath.mean(noise),
-            abductionDirection: abduction
+            abductionDirection: abduction,
+            accelerationSign: riseEvidence > 0.15 ? 1 : (riseEvidence < -0.15 ? -1 : nil)
         )
     }
 

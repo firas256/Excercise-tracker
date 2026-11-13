@@ -98,7 +98,8 @@ enum MotionScript {
                 out.append(MotionSample(
                     timestamp: s.t + offset,
                     gravity: wearing.toDeviceFrame(s.gravity),
-                    userAcceleration: wearing.toDeviceFrame(s.acceleration),
+                    // CoreMotion convention: userAcceleration is the negative of the physical acceleration.
+                    userAcceleration: wearing.toDeviceFrame(s.acceleration) * wearing.physicalAccelerationSign,
                     rotationRate: wearing.toDeviceFrame(s.rotation)
                 ))
             }

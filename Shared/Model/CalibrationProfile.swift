@@ -25,6 +25,13 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
     var stillnessNoise: Double
     /// Sign of the heading change when moving the arm from the front to the side (+1/-1, 0 = unknown).
     var abductionDirection: Double
+    /// Factor that turns the delivered user acceleration into the physical acceleration (+1 or -1),
+    /// measured during calibration from the hand rising as the arm is lifted. nil = not measured.
+    /// CoreMotion reports raw acceleration with gravity as -1 g when the screen faces up, which makes
+    /// its userAcceleration the negative of the real movement, hence the -1 default.
+    var accelerationSign: Double?
+
+    var physicalAccelerationSign: Double { accelerationSign ?? -1 }
 
     /// Third arm-frame axis, completing a right-handed frame.
     var radialAxis: Vector3 { forearmAxis.cross(palmAxis).normalized }
@@ -44,7 +51,8 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
             restingElevation: -88,
             supinationRange: 170,
             stillnessNoise: 0.03,
-            abductionDirection: 0
+            abductionDirection: 0,
+            accelerationSign: nil
         )
     }
 
@@ -62,7 +70,7 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
         ArmSample(
             t: s.timestamp,
             gravity: toArmFrame(s.gravity.normalized),
-            acceleration: toArmFrame(s.userAcceleration),
+            acceleration: toArmFrame(s.userAcceleration * physicalAccelerationSign),
             rotation: toArmFrame(s.rotationRate)
         )
     }
