@@ -13,8 +13,11 @@ What it does (mirrors what the watch app does live):
      user acceleration = measured acceleration minus gravity, rotation in rad/s.
   2. The arm frame is learned from the data, like the app's calibration:
        forearm axis = gravity direction while walking (arms hanging),
-       radial axis  = rotation axis of bicep curls (elbow flexion with a supinated grip),
-       palm axis    = forearm x radial, signed so the palm faces up mid-curl.
+       then the roll about the forearm is fixed with two grip-robust anchors:
+         - lateral raises rotate about the body's front-back axis, which is the thumb (radial)
+           axis when the arms start by the sides with palms facing the thighs;
+         - in triceps kickbacks (neutral grip) gravity points to the thumb side at full extension.
+       (RecoFit's curls turned out to be mostly hammer-style, so the curl axis is not a reliable anchor.)
   3. Signals are decimated to 25 Hz and stored per recording with the mapped exercise label.
 The accelerometer sign convention cannot be recovered from data alone, but a global sign flip is
 exactly a left/right-arm mirror image, which training removes with mirror augmentation.
@@ -39,7 +42,6 @@ LABELS = {
     "Lateral Raise": "lateralRaise",
     "Chest Press (rack)": "benchPress",
     "Dumbbell Row (knee on bench) (right arm)": "bentOverRow",
-    "Dumbbell Row (knee on bench) (label spans both arms)": "bentOverRow",
     "Lawnmower (right arm)": "bentOverRow",
     "Squat": "squat",
     "Squat (hands behind head)": "squat",
@@ -123,8 +125,14 @@ def track_gravity(acc, gyro, dt=1.0 / SOURCE_RATE, gain=0.02):
     return out
 
 
+def axial_angle(vectors_2d):
+    """Circular mean (mod 180 deg) of principal axes given as 2-D vectors."""
+    z = np.mean([np.exp(2j * math.atan2(v[1], v[0])) for v in vectors_2d])
+    return math.degrees(np.angle(z)) / 2
+
+
 def learn_arm_frame(sd, acts):
-    """Forearm axis from walking, radial axis from curl rotation, palm = forearm x radial."""
+    """Forearm axis from walking; roll about the forearm from lateral raises and kickbacks."""
     fs = []
     for _, r in records(sd, acts.index("Walk")):
         sig = raw_signals(r)
@@ -158,6 +166,39 @@ def learn_arm_frame(sd, acts):
     palm = np.cross(radial, forearm)  # so that forearm x palm = radial
     if np.mean(palm_votes, 0) @ palm < 0:
         palm, radial = -palm, -radial
+
+    # Roll correction. Angles are measured in the (palm, radial) plane: atan2(v.radial, v.palm).
+    def plane(v):
+        return np.array([v @ palm, v @ radial])
+
+    lateral_axes = []
+    for _, r in records(sd, acts.index("Lateral Raise")):
+        sig = raw_signals(r)
+        if sig is None:
+            continue
+        w = np.array([plane(v) for v in sig[1]])
+        _, vecs2 = np.linalg.eigh(w.T @ w)
+        lateral_axes.append(vecs2[:, -1])
+    kick_rolls = []
+    for name in ["Triceps Kickback (knee on bench) (right arm)", "Triceps Kickback (knee on bench) (label spans both arms)"]:
+        for _, r in records(sd, acts.index(name)):
+            sig = raw_signals(r)
+            if sig is None:
+                continue
+            g = track_gravity(*sig)
+            h = np.abs(g @ forearm) < 0.5
+            if h.sum() > 10:
+                kick_rolls.extend(np.exp(1j * np.arctan2(g[h] @ radial, g[h] @ palm)))
+    kick_roll = math.degrees(np.angle(np.mean(kick_rolls)))
+    theta_kick = 90 - kick_roll                          # thumb side should be at +90
+    theta_lat = 90 - axial_angle(lateral_axes)           # rotation axis should be the radial axis (mod 180)
+    if abs(((theta_lat - theta_kick + 90) % 180) - 90) < 90:
+        theta_lat = theta_kick + ((theta_lat - theta_kick + 90) % 180) - 90
+    theta = math.radians((theta_kick + theta_lat) / 2)
+    print(f"roll correction: kickback {theta_kick:.0f} deg, lateral raise {theta_lat:.0f} deg -> {math.degrees(theta):.0f} deg")
+    new_palm = math.cos(theta) * palm - math.sin(theta) * radial
+    new_radial = math.sin(theta) * palm + math.cos(theta) * radial
+    palm, radial = new_palm / np.linalg.norm(new_palm), new_radial / np.linalg.norm(new_radial)
     return forearm, palm, np.cross(forearm, palm)
 
 

@@ -98,7 +98,10 @@ def augment(batch, rng):
     w[m, :, 0] *= -1
     w[m, :, 1] *= -1
     # Strap rotation about the forearm (palm/radial plane) and a small tilt of the forearm axis.
-    th = np.radians(rng.uniform(-30, 30, B))
+    # +-45 deg covers how the strap sits; an occasional quarter turn covers grip differences
+    # (e.g. hammer vs palm-up curls), since RecoFit participants mostly used one grip per exercise.
+    quarter = rng.choice([-90.0, 0.0, 0.0, 0.0, 90.0], B)
+    th = np.radians(rng.uniform(-45, 45, B) + quarter)
     ph = np.radians(rng.uniform(-10, 10, B))
     c, s_, c2, s2 = np.cos(th), np.sin(th), np.cos(ph), np.sin(ph)
     one, zero = np.ones(B), np.zeros(B)
