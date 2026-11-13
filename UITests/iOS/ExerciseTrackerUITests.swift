@@ -72,11 +72,15 @@ final class ExerciseTrackerUITests: XCTestCase {
 
         // Lock the exercise from the phone.
         app.buttons["Choose exercise"].tap()
-        let hammer = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Hammer Curl'")).firstMatch
+        XCTAssertTrue(app.navigationBars["Exercise"].waitForExistence(timeout: 5))
+        // Only rows of the picker list (the live screen's chips are still behind the sheet).
+        let hammer = app.collectionViews.staticTexts["Hammer Curl"].firstMatch
         XCTAssertTrue(hammer.waitForExistence(timeout: 5))
         snap(app, "ios-61-choose-exercise")
         hammer.tap()
         XCTAssertTrue(app.buttons["Back to auto-detect"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Hammer Curl"].exists)
+        XCTAssertFalse(app.staticTexts["Bicep Curl"].exists)
         snap(app, "ios-62-exercise-locked")
 
         // Tuck the workout away and bring it back from the dashboard.

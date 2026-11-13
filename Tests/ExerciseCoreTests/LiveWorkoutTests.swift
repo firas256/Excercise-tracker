@@ -38,6 +38,13 @@ final class LiveWorkoutTests: XCTestCase {
         let mid = try XCTUnwrap(frames.min { abs($0.elevation) < abs($1.elevation) })
         XCTAssertGreaterThan(mid.palmDirection.z, 0.8)
         XCTAssertGreaterThan(abs(mid.forearmDirection.z), -1)
+        // The wrist rises and falls, but that's the forearm turning – the elbow stays put.
+        let lifts = frames.map { $0.lift }, elbow = frames.map { $0.elbowLift }
+        let liftRange = (lifts.max() ?? 0) - (lifts.min() ?? 0)
+        let elbowRange = (elbow.max() ?? 0) - (elbow.min() ?? 0)
+        print("curl lift range \(liftRange) cm, elbow range \(elbowRange) cm")
+        XCTAssertGreaterThan(liftRange, 15)
+        XCTAssertLessThan(elbowRange, liftRange * 0.3)
     }
 
     func testFramesShowHorizontalSweepAndPressLift() throws {
@@ -46,7 +53,11 @@ final class LiveWorkoutTests: XCTestCase {
         XCTAssertGreaterThan((headings.max() ?? 0) - (headings.min() ?? 0), 40)
 
         let press = try XCTUnwrap(SyntheticMotion.generate(.shoulderPress))
-        let lifts = MotionFrameBuilder.frames(from: press).map { $0.lift }
+        let pressFrames = MotionFrameBuilder.frames(from: press)
+        let lifts = pressFrames.map { $0.lift }, elbow = pressFrames.map { $0.elbowLift }
+        print("press lift range \((lifts.max() ?? 0) - (lifts.min() ?? 0)) cm, elbow range \((elbow.max() ?? 0) - (elbow.min() ?? 0)) cm")
         XCTAssertGreaterThan((lifts.max() ?? 0) - (lifts.min() ?? 0), 15)
+        // A press moves the whole arm up – the elbow rises with the hand.
+        XCTAssertGreaterThan((elbow.max() ?? 0) - (elbow.min() ?? 0), 12)
     }
 }

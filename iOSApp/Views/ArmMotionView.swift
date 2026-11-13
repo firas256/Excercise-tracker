@@ -41,7 +41,7 @@ struct ArmMotionView: View {
                 Canvas { ctx, size in draw(&ctx, size: size, time: t, frame: frame) }
                     .accessibilityHidden(true)
                 if let frame {
-                    Text("Forearm \(Int(frame.elevation.rounded()))°  ·  Lift \(frame.lift >= 0 ? "+" : "")\(Int(frame.lift.rounded())) cm")
+                    Text("Forearm \(Int(frame.elevation.rounded()))°  ·  Wrist \(frame.lift >= 0 ? "+" : "")\(Int(frame.lift.rounded())) cm")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .padding(10)
@@ -89,7 +89,7 @@ struct ArmMotionView: View {
         if dRoll > 180 { dRoll -= 360 }
         if dRoll < -180 { dRoll += 360 }
         return MotionFrame(t: t, elevation: lerp(a.elevation, b.elevation), heading: lerp(a.heading, b.heading),
-                           roll: a.roll + dRoll * u, lift: lerp(a.lift, b.lift))
+                           roll: a.roll + dRoll * u, lift: lerp(a.lift, b.lift), elbowLift: lerp(a.elbowLift, b.elbowLift))
     }
 
     // MARK: Drawing
@@ -104,8 +104,10 @@ struct ArmMotionView: View {
             let sy = p.z * cos(pr) + depth * sin(pr)
             return CGPoint(x: center.x + sx * unit, y: center.y - sy * unit)
         }
+        // The elbow moves only by what the forearm's rotation doesn't explain (a press, a squat);
+        // forearm ≈ 30 cm = 1 unit.
         func liftOffset(_ f: MotionFrame) -> Vector3 {
-            Vector3(0, 0, max(-1, min(1, f.lift / 30)))   // forearm ≈ 30 cm = 1 unit
+            Vector3(0, 0, max(-1, min(1, f.elbowLift / 30)))
         }
 
         // Floor grid and vertical reference

@@ -69,8 +69,11 @@ struct MotionFrame: Codable, Equatable, Sendable {
     var heading: Double
     /// Palm roll, degrees (0 = palm down, ±180 = palm up).
     var roll: Double
-    /// Hand height relative to its recent average, cm.
+    /// Wrist height relative to its recent average, cm.
     var lift: Double
+    /// How far the elbow (the whole arm) moved up or down, cm: the part of `lift` that the forearm
+    /// turning about the elbow doesn't explain. ~0 for a curl, large for a press or a squat.
+    var elbowLift: Double = 0
 
     /// Unit vector of the forearm (elbow → hand) in a world frame: x forward, y left, z up.
     var forearmDirection: Vector3 {
@@ -97,12 +100,22 @@ struct MotionFrame: Codable, Equatable, Sendable {
 /// Turns the arm-frame sample stream into `MotionFrame`s. Heading is the integrated rotation about
 /// vertical (with a slow leak so it re-centres), lift is double-integrated vertical acceleration
 /// with leaky integrators (good enough to *see* presses and squats, not for measuring).
+///
+/// The elbow's own movement is the lift minus the wrist height the forearm's rotation accounts
+/// for (watch ~26 cm from the elbow); that rotation height goes through the very same leaky
+/// integrators, so both carry the same filtering and the difference is only real translation.
 final class MotionFrameBuilder {
     let outputRate: Double
+    /// Elbow → watch distance, metres.
+    static let watchRadius = 0.26
     private var lastT: Double?
     private var heading = 0.0
     private var velocity = 0.0
     private var position = 0.0
+    private var lastRotationHeight: Double?
+    private var lastRotationSpeed: Double?
+    private var rotationVelocity = 0.0
+    private var rotationPosition = 0.0
     private var nextEmit: Double?
 
     init(outputRate: Double = 15) {
@@ -114,6 +127,10 @@ final class MotionFrameBuilder {
         heading = 0
         velocity = 0
         position = 0
+        lastRotationHeight = nil
+        lastRotationSpeed = nil
+        rotationVelocity = 0
+        rotationPosition = 0
         nextEmit = nil
     }
 
@@ -123,13 +140,25 @@ final class MotionFrameBuilder {
         lastT = s.t
         heading += s.yawRate * 180 / .pi * dt
         heading *= exp(-dt / 30)
-        velocity = velocity * exp(-dt / 1.0) + s.verticalAcceleration * dt
-        position = position * exp(-dt / 1.0) + velocity * dt
+        let decay = exp(-dt / 1.0)
+        velocity = velocity * decay + s.verticalAcceleration * dt
+        position = position * decay + velocity * dt
+        // Wrist height from the forearm's angle alone, fed through the same integrators as its
+        // acceleration (the change in its speed).
+        let rotationHeight = Self.watchRadius * sin(s.elevation * .pi / 180)
+        if let lastHeight = lastRotationHeight, dt > 0 {
+            let speed = (rotationHeight - lastHeight) / dt
+            rotationVelocity = rotationVelocity * decay + (speed - (lastRotationSpeed ?? speed))
+            rotationPosition = rotationPosition * decay + rotationVelocity * dt
+            lastRotationSpeed = speed
+        }
+        lastRotationHeight = rotationHeight
         if let next = nextEmit, s.t + 1e-6 < next { return nil }
         // Schedule from the previous due time (not this sample) so rounding never skips frames.
         let step = 1 / outputRate
         nextEmit = max((nextEmit ?? s.t) + step, s.t + step / 2)
-        return MotionFrame(t: s.t, elevation: s.elevation, heading: heading, roll: s.roll, lift: position * 100)
+        return MotionFrame(t: s.t, elevation: s.elevation, heading: heading, roll: s.roll, lift: position * 100,
+                           elbowLift: (position - rotationPosition) * 100)
     }
 
     /// Frames for a whole recording (used for replay on the iPhone).
