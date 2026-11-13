@@ -5,7 +5,7 @@ import Foundation
 enum DemoData {
     /// A calibration run through the real calibration engine on simulated motion (arm 0.55 m).
     static func calibration() -> CalibrationSummary {
-        let engine = CalibrationEngine()
+        let engine = CalibrationEngine(wrist: .left, crownTowardsHand: true)
         var events = engine.start()
         for sample in SyntheticCalibration.samples(armLength: 0.55, overheadElevation: 82, noiseSeed: 3) {
             events += engine.ingest(sample)
