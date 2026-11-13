@@ -44,8 +44,11 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - name: Check the shipped exercise model
         run: |
-          python3 -m venv .venv
+          python -m venv .venv
           .venv/bin/pip install -q coremltools numpy
           .venv/bin/python ML/training/check_coreml.py WatchApp/ML/ExerciseActivityClassifier.mlpackage ML/training/fixtures
