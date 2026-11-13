@@ -190,7 +190,6 @@ final class WorkoutViewModel: ObservableObject {
         return state
     }
 
-    /// Sends the current state to the phone if it changed (called on every change and once a second).
     /// Sends the workout state to the phone when it changed, plus a heartbeat every few seconds
     /// so the phone knows the watch is still there (and catches up after reconnecting).
     func publishLiveState() {
