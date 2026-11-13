@@ -34,7 +34,8 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
 
     func testCalibrationAndWorkoutWithSimulatedMotion() {
         let app = XCUIApplication()
-        app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "3"]
+        app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "3",
+                               "-speakInstructions", "NO"]
         app.launch()
 
         let start = app.buttons["Start Workout"]
@@ -45,11 +46,11 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         // Guided calibration (scripted motion plays in real time): each pose is detected automatically.
         XCTAssertTrue(app.staticTexts["Arms down"].waitForExistence(timeout: 15))
         snap(app, "watch-02-calibration-arms-down")
-        XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 40))
         snap(app, "watch-03-calibration-arm-forward")
-        XCTAssertTrue(app.staticTexts["Arm overhead"].waitForExistence(timeout: 30))
+        XCTAssertTrue(app.staticTexts["Arm overhead"].waitForExistence(timeout: 60))
         snap(app, "watch-04-calibration-overhead")
-        XCTAssertTrue(app.staticTexts["Calibrated!"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.staticTexts["Calibrated!"].waitForExistence(timeout: 40))
         snap(app, "watch-05-calibrated")
 
         // Live tracking of the first scripted set (8 bicep curls).

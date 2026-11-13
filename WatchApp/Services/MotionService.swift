@@ -92,14 +92,21 @@ final class MotionService {
             let loopLength = last.timestamp + 1 / rate
             var index = 0
             var offset = 0.0
+            var emitted = 0
+            let started = DispatchTime.now().uptimeNanoseconds
             let timer = DispatchSource.makeTimerSource(queue: self.queue)
             timer.schedule(deadline: .now(), repeating: 1 / rate)
             timer.setEventHandler { [weak self] in
                 guard let self else { return }
-                for _ in 0..<speed {
+                // Follow the wall clock (and catch up if ticks arrive late on a busy machine), so the
+                // script plays at the intended speed.
+                let elapsed = Double(DispatchTime.now().uptimeNanoseconds - started) / 1e9
+                let due = Int(elapsed * rate * Double(speed)) + 1
+                for _ in 0..<min(max(0, due - emitted), Int(rate) * speed) {
                     var sample = script[index]
                     sample.timestamp += offset
                     self.handler?(sample)
+                    emitted += 1
                     index += 1
                     if index == script.count {
                         index = 0
