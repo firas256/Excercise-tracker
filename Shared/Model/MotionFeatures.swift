@@ -29,15 +29,31 @@ struct MotionFeatures: Codable, Equatable, Hashable, Sendable {
     var pushDirection: Double
     /// Seconds per rep.
     var repPeriod: Double
+    /// Which way the effortful (faster) half of each rep goes: > 0 rising is quicker (curls, raises,
+    /// presses), < 0 lowering is quicker (pushdowns, pulldowns). nil when it can't be told.
+    var upTempoBias: Double? = nil
+    /// Radius (cm) the watch swings on: vertical travel ÷ change in sin(forearm angle). About the
+    /// forearm length when only the elbow moves (curls, pushdowns), the whole arm when the shoulder
+    /// moves (raises). nil when the forearm angle barely changes.
+    var pivotRadius: Double? = nil
+
+    /// Lowest / highest forearm angle of a rep, whichever end the rep happened to start from.
+    var lowElevation: Double { min(startElevation, peakElevation) }
+    var highElevation: Double { max(startElevation, peakElevation) }
 
     enum Key: String, CaseIterable, Codable, Sendable {
         case startElevation, peakElevation, palmDown, thumbUp, axisTwist, axisPalm, axisRadial
         case rotationAmplitude, yawAmplitude, verticalAmplitude, forearmAmplitude
         case startsHigh, pushDirection, repPeriod
+        case lowElevation, highElevation, upTempoBias, pivotRadius
     }
 
     func value(_ key: Key) -> Double? {
         switch key {
+        case .lowElevation: return lowElevation
+        case .highElevation: return highElevation
+        case .upTempoBias: return upTempoBias
+        case .pivotRadius: return pivotRadius
         case .startElevation: return startElevation
         case .peakElevation: return peakElevation
         case .palmDown: return palmDown

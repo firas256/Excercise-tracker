@@ -39,6 +39,8 @@ final class WorkoutViewModel: ObservableObject {
     /// The phone asked to end the workout.
     var onEndWorkoutRequested: (() -> Void)?
     private let frameBuilder = MotionFrameBuilder(outputRate: 15)
+    /// The user's measured body (from calibration) used for recognition, feedback and the 3-D view.
+    private(set) var body = BodyProfile.typical
     private var frameBatch: [MotionFrame] = []        // motion queue only
     private var lastSentLiveState: LiveWorkoutState?
     private var liveTimer: Timer?
@@ -69,14 +71,17 @@ final class WorkoutViewModel: ObservableObject {
         pendingSet = nil
         var configuration = LiveSetTracker.Configuration()
         configuration.restTimeout = max(3, WatchSettings.restTimeout)
+        body = profile.body
+        let body = self.body
         let classifier = makeClassifier()
         let locked = lockedExercise
         motion.queue.async {
             self.tracker.configuration = configuration
-            self.tracker.analyzer = SetAnalyzer(classifier: classifier)
+            self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body)
             self.tracker.lockedExercise = locked
             self.tracker.cancelSet()
             self.frameBuilder.reset()
+            self.frameBuilder.watchRadius = body.forearmLength
             self.frameBatch.removeAll()
         }
         motion.simulationScenario = .workout
@@ -204,7 +209,8 @@ final class WorkoutViewModel: ObservableObject {
     }
 
     private func makeClassifier() -> ExerciseClassifying {
-        BlendedExerciseClassifier(prototype: PrototypeExerciseClassifier(personalization: store.personalization), coreML: coreML)
+        BlendedExerciseClassifier(prototype: PrototypeExerciseClassifier(personalization: store.personalization, body: body),
+                                  coreML: coreML)
     }
 
     private func handle(_ event: TrackerEvent) {
@@ -291,7 +297,8 @@ final class WorkoutViewModel: ObservableObject {
         if let features = analysis.features, finalExercise.isAutoDetectable {
             store.learn(features, label: finalExercise)
             let classifier = makeClassifier()
-            motion.queue.async { self.tracker.analyzer = SetAnalyzer(classifier: classifier) }
+            let body = self.body
+            motion.queue.async { self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body) }
         }
         if WatchSettings.recordTrainingData {
             WatchConnectivityService.shared.sendTrainingRecording(samples: pending.completed.samples,

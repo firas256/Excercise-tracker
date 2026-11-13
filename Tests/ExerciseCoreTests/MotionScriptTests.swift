@@ -15,7 +15,8 @@ final class MotionScriptTests: XCTestCase {
         let p = try XCTUnwrap(profile, "calibration did not finish: \(events)")
         XCTAssertGreaterThan(p.forearmAxis.dot(MotionScript.wearing.forearmAxis), 0.99)
         XCTAssertGreaterThan(p.palmAxis.dot(MotionScript.wearing.palmAxis), 0.99)
-        XCTAssertEqual(p.overheadElevation, 90, accuracy: 3)
+        XCTAssertEqual(p.overheadElevation, 85, accuracy: 3)
+        XCTAssertEqual(p.armLength ?? 0, 0.58, accuracy: 0.04)  // the Simulator measures an arm too
     }
 
     func testWorkoutScriptProducesExpectedSets() {

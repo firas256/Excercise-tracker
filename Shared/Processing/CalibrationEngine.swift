@@ -119,6 +119,15 @@ final class CalibrationEngine {
     private var transitDt = 0.02
     /// Net hand rise (m) over the lifting transitions, in the delivered acceleration's sign.
     private var riseEvidence = 0.0
+    /// Forearm angle of the last captured pose (nil after a skipped step).
+    private var lastCapturedElevation: Double?
+    private var forwardElevation: Double?
+    private var sideElevation: Double?
+    /// Straight-arm swings between poses: how far the watch rose (m, delivered sign) and by how
+    /// much sin(elevation) changed. A straight arm of length L pivoting at the shoulder lifts the
+    /// wrist by L·Δsin(elevation), so these give the arm length.
+    private struct Swing { var pose: CalibrationPose; var rise: Double; var sinChange: Double }
+    private var swings: [Swing] = []
     /// +1 if `attitude.rotate` maps device → world, -1 if the conjugate does (decided from gravity).
     private var attitudeConvention: Double?
 
@@ -208,10 +217,18 @@ final class CalibrationEngine {
                     }
                 }
                 noise.append(SignalMath.mean(holdNoise))
+                let poseElevation = elevation(g)
                 if pose == .armForward || pose == .armOverhead {
                     // The hand rose by roughly an arm's length; the velocity is zero at both still ends.
-                    riseEvidence += SignalMath.zeroVelocityDisplacement(transit, from: 0, to: transit.count, dt: transitDt)
+                    let rise = SignalMath.zeroVelocityDisplacement(transit, from: 0, to: transit.count, dt: transitDt)
+                    riseEvidence += rise
+                    let seconds = Double(transit.count) * transitDt
+                    if let previous = lastCapturedElevation, seconds < 12 {
+                        let sinChange = sin(poseElevation * .pi / 180) - sin(previous * .pi / 180)
+                        if sinChange > 0.5 { swings.append(Swing(pose: pose, rise: rise, sinChange: sinChange)) }
+                    }
                 }
+                lastCapturedElevation = poseElevation
                 events.append(contentsOf: advance(from: pose))
             }
         case .finished:
@@ -223,6 +240,7 @@ final class CalibrationEngine {
     /// Skips the current pose, falling back to defaults for whatever it would have measured.
     func skipCurrentStep() -> [CalibrationEvent] {
         guard let pose = currentPose else { return [] }
+        lastCapturedElevation = nil  // the next swing no longer starts from a known pose
         return advance(from: pose)
     }
 
@@ -265,6 +283,7 @@ final class CalibrationEngine {
             palm = g.orthogonalized(against: f).normalized
             forwardGravity = g
             forwardHeading = heading(of: f, attitude: attitude)
+            forwardElevation = elevation(g)
         case .palmUp:
             let p = palm ?? defaults.palmAxis
             guard abs(elevation(g)) <= 35 else { return "Keep your arm at shoulder height" }
@@ -278,6 +297,7 @@ final class CalibrationEngine {
             guard abs(elevation(g)) <= 35 else { return "Keep your arm at shoulder height" }
             guard g.dot(p) > 0.5 else { return "Palm facing the floor" }
             let f = forearm ?? defaults.forearmAxis
+            sideElevation = elevation(g)
             if let h0 = forwardHeading, let h1 = heading(of: f, attitude: attitude) {
                 let d = wrapDegrees(h1 - h0)
                 guard abs(d) >= 35 else { return "Move your arm out to the side" }
@@ -307,6 +327,30 @@ final class CalibrationEngine {
         }
     }
 
+    /// Arm length (shoulder → watch, m) from the straight-arm swings, or nil if they don't give a
+    /// believable answer. Mainly the arms-down → forward swing; reaching overhead also lifts the
+    /// shoulder a few centimetres, so that swing is corrected for it and counts less.
+    private func measuredArmLength(sign: Double) -> Double? {
+        var estimates: [(length: Double, weight: Double)] = []
+        for swing in swings {
+            var rise = swing.rise * sign
+            var weight = 1.0
+            if swing.pose == .armOverhead {
+                rise -= 0.04
+                weight = 0.35
+            }
+            let length = rise / swing.sinChange
+            guard (0.35...0.9).contains(length) else { continue }
+            estimates.append((length, weight))
+        }
+        guard !estimates.isEmpty else { return nil }
+        if estimates.count == 2, abs(estimates[0].length - estimates[1].length) > 0.25 * estimates[0].length {
+            return estimates.max { $0.weight < $1.weight }?.length  // they disagree: trust the forward swing
+        }
+        let total = estimates.reduce(0) { $0 + $1.weight }
+        return estimates.reduce(0) { $0 + $1.length * $1.weight } / total
+    }
+
     private func makeProfile() -> CalibrationProfile {
         var f = forearm ?? defaults.forearmAxis
         f = f.normalized
@@ -314,6 +358,7 @@ final class CalibrationEngine {
         if p.length < 0.3 { p = defaults.palmAxis.orthogonalized(against: f) }
         if p.length < 0.3 { p = Vector3.unitY.orthogonalized(against: f) }
         p = p.normalized
+        let sign: Double? = riseEvidence > 0.15 ? 1 : (riseEvidence < -0.15 ? -1 : nil)
         return CalibrationProfile(
             forearmAxis: f,
             palmAxis: p,
@@ -324,7 +369,10 @@ final class CalibrationEngine {
             supinationRange: supination ?? 170,
             stillnessNoise: noise.isEmpty ? 0.03 : SignalMath.mean(noise),
             abductionDirection: abduction,
-            accelerationSign: riseEvidence > 0.15 ? 1 : (riseEvidence < -0.15 ? -1 : nil)
+            accelerationSign: sign,
+            forwardElevation: forwardElevation,
+            sideElevation: sideElevation,
+            armLength: sign.flatMap { measuredArmLength(sign: $0) }
         )
     }
 

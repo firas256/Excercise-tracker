@@ -160,7 +160,8 @@ struct SetDetailView: View {
 
                 if let url = store.recordingURL(setID: set.id) {
                     Section {
-                        MotionReplayView(recording: url, reps: set.reps)
+                        MotionReplayView(recording: url, reps: set.reps,
+                                         forearmLength: store.calibration?.body?.forearmLength ?? MotionFrameBuilder.defaultWatchRadius)
                     } header: {
                         Text("Arm motion replay")
                     } footer: {

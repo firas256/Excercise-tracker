@@ -63,3 +63,22 @@ struct ArmSample: Codable, Equatable, Sendable {
     /// Rough motion energy used for activity detection (rad/s + g, unitless blend).
     var motionEnergy: Double { rotation.length + 2 * acceleration.length }
 }
+
+/// How the hand holds the weight, seen as the forearm's roll with the forearm roughly horizontal.
+enum Grip: String, Codable, CaseIterable, Sendable {
+    /// Palm facing the floor (overhand), e.g. bar pushdown, lateral raise. Watch face up.
+    case pronated
+    /// Thumb up, palm facing in, e.g. hammer curl, rope pushdown. Watch face to the side.
+    case neutral
+    /// Palm facing up (underhand), e.g. bicep curl. Watch face down.
+    case supinated
+
+    /// Roll away from palm-down (degrees) for a typical (full) range of forearm rotation.
+    var nominalRoll: Double {
+        switch self {
+        case .pronated: return 0
+        case .neutral: return 90
+        case .supinated: return 180
+        }
+    }
+}

@@ -3,6 +3,17 @@ import Foundation
 /// Builds a realistic demo workout by running the real analysis pipeline on simulated motion,
 /// so the app can be explored before the first watch workout (or in the Simulator).
 enum DemoData {
+    /// A calibration run through the real calibration engine on simulated motion (arm 0.55 m).
+    static func calibration() -> CalibrationSummary {
+        let engine = CalibrationEngine()
+        var events = engine.start()
+        for sample in SyntheticCalibration.samples(armLength: 0.55, overheadElevation: 82, noiseSeed: 3) {
+            events += engine.ingest(sample)
+        }
+        for case .finished(let profile) in events { return CalibrationSummary(profile: profile) }
+        return CalibrationSummary(profile: .defaultProfile())
+    }
+
     /// `recording` receives each set's raw samples (used to give demo sets a motion replay).
     static func makeWorkout(daysAgo: Int = 1, recording: ((UUID, ExerciseType, [ArmSample]) -> Void)? = nil) -> WorkoutRecord {
         let start = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()

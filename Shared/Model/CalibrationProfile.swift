@@ -14,12 +14,13 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
     var createdAt: Date
     var wrist: WristSide
 
-    /// Highest forearm elevation reached in the overhead pose (degrees). Used to scale expectations
-    /// for overhead exercises to the user's shoulder mobility.
+    /// Highest forearm elevation reached in the overhead pose (degrees): the user's overhead reach,
+    /// used for "finish the top" checks on overhead exercises and the expected press height.
     var overheadElevation: Double
     /// Lowest elevation (arms relaxed), usually close to -90.
     var restingElevation: Double
-    /// How far the user could rotate from palm-down to palm-up (degrees, ideally ~180).
+    /// How far the user could rotate from palm-down to palm-up (degrees, ideally ~180): their own
+    /// "palm up", used to recognise underhand grips (curls) from overhand/neutral ones.
     var supinationRange: Double
     /// Sensor noise while standing still (rad/s); used to tune stillness thresholds.
     var stillnessNoise: Double
@@ -30,8 +31,18 @@ struct CalibrationProfile: Codable, Equatable, Sendable {
     /// CoreMotion reports raw acceleration with gravity as -1 g when the screen faces up, which makes
     /// its userAcceleration the negative of the real movement, hence the -1 default.
     var accelerationSign: Double?
+    /// Forearm angle (deg) with the straight arm forward / out to the side at shoulder height: the
+    /// user's own "horizontal" (the way the watch sits makes it read a little off zero). nil = not measured.
+    var forwardElevation: Double? = nil
+    var sideElevation: Double? = nil
+    /// Shoulder → watch distance (m) with the arm straight, from how far the watch rose while the
+    /// straight arm swung up between poses. nil = not measured.
+    var armLength: Double? = nil
 
     var physicalAccelerationSign: Double { accelerationSign ?? -1 }
+
+    /// Personal measurements for tracking and feedback.
+    var body: BodyProfile { BodyProfile(profile: self) }
 
     /// Third arm-frame axis, completing a right-handed frame.
     var radialAxis: Vector3 { forearmAxis.cross(palmAxis).normalized }

@@ -12,6 +12,8 @@ struct ArmMotionView: View {
     var playbackTime: Double?
     /// When the newest frame arrived (live mode).
     var lastArrival: Date?
+    /// The user's forearm (elbow → watch, m) from calibration: one drawn forearm length.
+    var forearmLength: Double = MotionFrameBuilder.defaultWatchRadius
 
     enum Camera: String, CaseIterable, Identifiable {
         case threeD = "3D", side = "Side", front = "Front"
@@ -105,9 +107,10 @@ struct ArmMotionView: View {
             return CGPoint(x: center.x + sx * unit, y: center.y - sy * unit)
         }
         // The elbow moves only by what the forearm's rotation doesn't explain (a press, a squat);
-        // forearm ≈ 30 cm = 1 unit.
+        // one unit = the user's forearm length.
+        let unitCM = max(15, forearmLength * 100)
         func liftOffset(_ f: MotionFrame) -> Vector3 {
-            Vector3(0, 0, max(-1, min(1, f.elbowLift / 30)))
+            Vector3(0, 0, max(-1.2, min(1.2, f.elbowLift / unitCM)))
         }
 
         // Floor grid and vertical reference

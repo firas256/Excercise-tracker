@@ -27,6 +27,7 @@ final class WorkoutStore: ObservableObject {
             add(DemoData.makeWorkout(daysAgo: 0, recording: saveRecording))
             add(DemoData.makeWorkout(daysAgo: 2, recording: saveRecording))
             refreshTrainingCounts()
+            if calibration == nil { setCalibration(DemoData.calibration()) }
         }
     }
 

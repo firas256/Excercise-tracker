@@ -48,6 +48,25 @@ enum FeatureExtractor {
         let pushDirection = SignalMath.mean(fDisp.map { SignalMath.clamp($0 / 5, -1, 1) })
         let repPeriod = SignalMath.median(segs.map { Double($0.end - $0.start) * signals.dt })
 
+        // Which half of the rep is quicker, rising or lowering (the effortful half usually is).
+        // And the radius the watch swings on: vertical travel per change in sin(forearm angle).
+        var biases: [Double] = []
+        var radii: [Double] = []
+        for (seg, v) in zip(segs, vDisp) {
+            let e0 = signals.elevation[seg.start], e1 = signals.elevation[seg.peak]
+            let awayIsUp: Bool
+            if abs(e1 - e0) >= 20 { awayIsUp = e1 > e0 } else if abs(v) >= 8 { awayIsUp = v > 0 } else { awayIsUp = true }
+            if abs(e1 - e0) >= 20 || abs(v) >= 8 {
+                let away = Double(max(1, seg.awayEnd - seg.moveStart)), back = Double(max(1, seg.moveEnd - seg.returnStart))
+                let up = awayIsUp ? away : back, down = awayIsUp ? back : away
+                biases.append((down - up) / (down + up))
+            }
+            let sinChange = sin(e1 * .pi / 180) - sin(e0 * .pi / 180)
+            if abs(sinChange) >= 0.35 { radii.append(abs(v) / abs(sinChange)) }
+        }
+        let upTempoBias = biases.count >= 2 ? SignalMath.median(biases) : nil
+        let pivotRadius = radii.count >= 2 ? SignalMath.median(radii) : nil
+
         return MotionFeatures(
             startElevation: startElevation,
             peakElevation: peakElevation,
@@ -62,7 +81,9 @@ enum FeatureExtractor {
             forearmAmplitude: forearmAmplitude,
             startsHigh: startsHigh,
             pushDirection: pushDirection,
-            repPeriod: repPeriod
+            repPeriod: repPeriod,
+            upTempoBias: upTempoBias,
+            pivotRadius: pivotRadius
         )
     }
 

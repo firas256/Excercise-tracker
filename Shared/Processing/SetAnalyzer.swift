@@ -18,9 +18,12 @@ struct SetAnalysis {
 /// Runs the full pipeline on a buffer of arm-frame samples: reps → features → exercise → feedback.
 struct SetAnalyzer {
     var classifier: ExerciseClassifying
+    /// The user's measured body (from calibration): personal angles, grip range and arm length.
+    var body: BodyProfile
 
-    init(classifier: ExerciseClassifying = PrototypeExerciseClassifier()) {
-        self.classifier = classifier
+    init(classifier: ExerciseClassifying? = nil, body: BodyProfile = .typical) {
+        self.classifier = classifier ?? PrototypeExerciseClassifier(body: body)
+        self.body = body
     }
 
     func analyze(_ samples: [ArmSample], lockedExercise: ExerciseType? = nil) -> SetAnalysis {
@@ -33,11 +36,12 @@ struct SetAnalyzer {
         let features = FeatureExtractor.extract(signals, detection: detection)
         var candidates: [ExerciseCandidate] = []
         if lockedExercise == nil, let features, detection.segments.count >= 2 {
-            candidates = classifier.classify(features, samples: samples)
+            // The grip rules out exercises whatever suggested them (including the Core ML model).
+            candidates = GripModel.apply(classifier.classify(features, samples: samples), features: features, body: body)
         }
         let exercise = lockedExercise ?? candidates.first?.exercise
-        let reps = FeedbackEngine.repMetrics(signals, detection: detection, exercise: exercise)
-        let feedback = FeedbackEngine.setFeedback(reps, exercise: exercise)
+        let reps = FeedbackEngine.repMetrics(signals, detection: detection, exercise: exercise, body: body)
+        let feedback = FeedbackEngine.setFeedback(reps, exercise: exercise, body: body)
         return SetAnalysis(detection: detection, reps: reps, features: features, candidates: candidates,
                            exercise: exercise, feedback: feedback)
     }

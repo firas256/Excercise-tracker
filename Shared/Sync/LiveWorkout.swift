@@ -118,12 +118,13 @@ struct MotionFrame: Codable, Equatable, Sendable {
 /// with leaky integrators (good enough to *see* presses and squats, not for measuring).
 ///
 /// The elbow's own movement is the lift minus the wrist height the forearm's rotation accounts
-/// for (watch ~26 cm from the elbow); that rotation height goes through the very same leaky
+/// for (the watch sits a forearm's length from the elbow); that rotation height goes through the very same leaky
 /// integrators, so both carry the same filtering and the difference is only real translation.
 final class MotionFrameBuilder {
     let outputRate: Double
-    /// Elbow → watch distance, metres.
-    static let watchRadius = 0.26
+    /// Elbow → watch distance (m): the user's measured forearm (`BodyProfile.forearmLength`).
+    var watchRadius: Double
+    static let defaultWatchRadius = 0.26
     private var lastT: Double?
     private var heading = 0.0
     private var velocity = 0.0
@@ -134,8 +135,9 @@ final class MotionFrameBuilder {
     private var rotationPosition = 0.0
     private var nextEmit: Double?
 
-    init(outputRate: Double = 15) {
+    init(outputRate: Double = 15, watchRadius: Double = MotionFrameBuilder.defaultWatchRadius) {
         self.outputRate = outputRate
+        self.watchRadius = watchRadius
     }
 
     func reset() {
@@ -161,7 +163,7 @@ final class MotionFrameBuilder {
         position = position * decay + velocity * dt
         // Wrist height from the forearm's angle alone, fed through the same integrators as its
         // acceleration (the change in its speed).
-        let rotationHeight = Self.watchRadius * sin(s.elevation * .pi / 180)
+        let rotationHeight = watchRadius * sin(s.elevation * .pi / 180)
         if let lastHeight = lastRotationHeight, dt > 0 {
             let speed = (rotationHeight - lastHeight) / dt
             rotationVelocity = rotationVelocity * decay + (speed - (lastRotationSpeed ?? speed))
@@ -178,8 +180,9 @@ final class MotionFrameBuilder {
     }
 
     /// Frames for a whole recording (used for replay on the iPhone).
-    static func frames(from samples: [ArmSample], outputRate: Double = 25) -> [MotionFrame] {
-        let b = MotionFrameBuilder(outputRate: outputRate)
+    static func frames(from samples: [ArmSample], outputRate: Double = 25,
+                       watchRadius: Double = MotionFrameBuilder.defaultWatchRadius) -> [MotionFrame] {
+        let b = MotionFrameBuilder(outputRate: outputRate, watchRadius: watchRadius)
         return samples.compactMap { b.add($0) }
     }
 }

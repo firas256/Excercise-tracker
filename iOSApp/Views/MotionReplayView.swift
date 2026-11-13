@@ -5,6 +5,8 @@ import SwiftUI
 struct MotionReplayView: View {
     let recording: URL
     let reps: [RepMetrics]
+    /// The user's forearm (elbow → watch, m) from calibration.
+    var forearmLength: Double = MotionFrameBuilder.defaultWatchRadius
 
     @State private var frames: [MotionFrame] = []
     @State private var loading = true
@@ -24,7 +26,7 @@ struct MotionReplayView: View {
             } else if frames.count < 2 {
                 Text("This recording couldn't be read.").foregroundStyle(.secondary)
             } else {
-                ArmMotionView(frames: frames, playbackTime: time)
+                ArmMotionView(frames: frames, playbackTime: time, forearmLength: forearmLength)
                     .frame(height: 260)
                 HStack(spacing: 12) {
                     Button {
@@ -75,9 +77,10 @@ struct MotionReplayView: View {
 
     private func load() async {
         let url = recording
+        let radius = forearmLength
         let result = await Task.detached(priority: .userInitiated) { () -> [MotionFrame] in
             guard let csv = try? String(contentsOf: url, encoding: .utf8) else { return [] }
-            return MotionFrameBuilder.frames(from: TrainingCSV.parse(csv), outputRate: 25)
+            return MotionFrameBuilder.frames(from: TrainingCSV.parse(csv), outputRate: 25, watchRadius: radius)
         }.value
         frames = result
         time = result.first?.t ?? 0

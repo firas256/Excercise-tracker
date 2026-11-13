@@ -19,7 +19,9 @@ enum ExercisePrototypes {
     /// Typical spread used when a prototype does not specify one.
     static func defaultSD(_ key: MotionFeatures.Key) -> Double {
         switch key {
-        case .startElevation, .peakElevation: return 18
+        case .startElevation, .peakElevation, .lowElevation, .highElevation: return 18
+        case .upTempoBias: return 0.3
+        case .pivotRadius: return 10
         case .palmDown: return 0.4
         case .thumbUp: return 0.35
         case .axisTwist, .axisPalm, .axisRadial: return 0.3
@@ -35,7 +37,9 @@ enum ExercisePrototypes {
     /// Lower bound for a personalised spread, so a handful of examples cannot make a class over-confident.
     static func minimumSD(_ key: MotionFeatures.Key) -> Double {
         switch key {
-        case .startElevation, .peakElevation: return 6
+        case .startElevation, .peakElevation, .lowElevation, .highElevation: return 6
+        case .upTempoBias: return 0.12
+        case .pivotRadius: return 4
         case .palmDown, .thumbUp: return 0.15
         case .axisTwist, .axisPalm, .axisRadial: return 0.12
         case .rotationAmplitude: return 10
@@ -50,15 +54,50 @@ enum ExercisePrototypes {
     /// Relative importance of each feature in the classifier.
     static func weight(_ key: MotionFeatures.Key) -> Double {
         switch key {
-        case .startElevation, .peakElevation: return 1.0
+        // Where a rep "starts" depends on how the set began (e.g. a pushdown begun with the arms
+        // hanging looks like it starts low, like a curl), so the angles are compared as the lowest
+        // and highest point of the rep instead, and the starting side counts only a little.
+        case .startElevation, .peakElevation: return 0
+        case .lowElevation, .highElevation: return 1.0
+        case .startsHigh: return 0.3
         case .palmDown: return 0.7
         case .thumbUp: return 0.5
         case .axisTwist, .axisPalm, .axisRadial: return 0.4
         case .rotationAmplitude, .yawAmplitude, .verticalAmplitude: return 0.6
         case .forearmAmplitude: return 0.4
-        case .startsHigh: return 0.8
         case .pushDirection: return 0.5
         case .repPeriod: return 0.3
+        case .upTempoBias: return 0.5
+        case .pivotRadius: return 0.8
+        }
+    }
+
+    /// Which joint the watch swings around, so the swing radius can be compared with the user's
+    /// own forearm or arm length.
+    enum Pivot { case elbow, shoulder }
+
+    static func pivot(_ e: ExerciseType) -> Pivot? {
+        switch e {
+        case .bicepCurl, .hammerCurl, .tricepsPushdown, .overheadTricepsExtension, .skullCrusher, .tricepsKickback:
+            return .elbow
+        case .lateralRaise, .frontRaise, .reverseFly, .chestFly:
+            return .shoulder
+        default:
+            return nil
+        }
+    }
+
+    /// Which half of the rep is the quicker, effortful one: +1 rising, -1 lowering.
+    static func effortDirection(_ e: ExerciseType) -> Double? {
+        switch e {
+        case .bicepCurl, .hammerCurl, .lateralRaise, .frontRaise, .shoulderPress, .uprightRow, .shrug,
+             .overheadTricepsExtension, .skullCrusher, .benchPress, .bentOverRow, .deadlift, .romanianDeadlift,
+             .squat, .gobletSquat, .tricepsKickback, .reverseFly:
+            return 1
+        case .tricepsPushdown, .latPulldown:
+            return -1
+        default:
+            return nil
         }
     }
 
@@ -68,6 +107,19 @@ enum ExercisePrototypes {
         var stats: [K: FeatureGaussian] = [:]
         for (k, v) in values {
             stats[k] = FeatureGaussian(mean: v.0, sd: v.1 ?? defaultSD(k))
+        }
+        // Exercises done with more than one grip (bar or rope pushdown…) can't be described by one
+        // average palm orientation; `GripModel` judges their grip instead.
+        if (GripModel.grips(for: e)?.count ?? 0) > 1 {
+            stats[.palmDown] = nil
+            stats[.thumbUp] = nil
+        }
+        if let a = stats[.startElevation], let b = stats[.peakElevation] {
+            stats[.lowElevation] = a.mean <= b.mean ? a : b
+            stats[.highElevation] = a.mean <= b.mean ? b : a
+        }
+        if let direction = effortDirection(e) {
+            stats[.upTempoBias] = FeatureGaussian(mean: 0.2 * direction, sd: 0.3)
         }
         return ExercisePrototype(exercise: e, prior: prior, stats: stats)
     }

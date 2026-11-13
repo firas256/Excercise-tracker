@@ -140,15 +140,32 @@ Microsoft Research's RecoFit dataset, and you **don't need to record training da
    cardio, stretching). On people it never saw during training it gets **88 % of exercise sets** right.
    The data was converted into the app's arm frame and augmented for left/right arm, strap position,
    grip, tempo and wrist placement – details in [`ML/README.md`](ML/README.md).
-2. **Personal classifier that learns from you.** Each set is also summarised by 14 orientation-independent
-   features (forearm angles, grip, rotation axis, vertical and push/pull travel, tempo…) compared with
-   biomechanical prototypes of 29 exercises. Every set you confirm or correct updates these with your
-   data, and the more you confirm, the more say this classifier gets.
+2. **Personal classifier that learns from you.** Each set is also summarised by orientation-independent
+   features compared with biomechanical prototypes of 29 exercises, fitted to *your* body (see below).
+   Every set you confirm or correct updates these with your data, and the more you confirm, the more say
+   this classifier gets. The key features:
+   - **Lowest and highest forearm angle of a rep** – not where a rep "starts", which depends on how you
+     began the set (a pushdown begun with the arms hanging would otherwise look like a curl).
+   - **Grip** – which way the watch faces while the forearm is roughly horizontal: palm up / watch face
+     down (curls), thumb up / watch to the side (hammer curl, rope pushdown), palm down / watch face up
+     (bar pushdown, raises). Each exercise lists the grips it's done with, and a clear grip that doesn't
+     fit rules it out – whichever classifier suggested it. "Palm up" is judged against *your* own palm-up
+     from calibration, so a forearm that doesn't turn a full 180° still counts.
+   - **Pivot** – how far the wrist rises for a given change in forearm angle gives the radius it swings
+     on: about your forearm for elbow exercises (curls, pushdowns, extensions), your whole arm for
+     shoulder exercises (raises). Compared with your own measured forearm and arm length.
+   - **Which half of the rep is quicker** – the effortful half usually is: lifting for curls and raises,
+     pushing down for pushdowns.
+   - Rotation axis, vertical and push/pull travel (scaled to your arm length), rep tempo.
+
+   The Core ML model only knows the exercises in its training data (no pushdowns or hammer curls, for
+   example), so it may only shift probability *between those*; it can't outvote an exercise it has never
+   seen.
 
 You can also train your own model from your exported sets in Create ML and replace the shipped one.
 
 Honest limits: some pairs move the wrist almost identically (bench press vs. shoulder press, squat vs.
-goblet squat, lateral vs. front raise) – the watch will often get the family right and learn the rest from
+goblet squat, lateral vs. front raise, and a rope pushdown vs. a hammer curl done with the same tempo) – the watch will often get the family right and learn the rest from
 your corrections. Exercises where the hands are fixed (leg press, leg extension/curl, pull-ups) should be
 picked manually; counting is best-effort. The model's accuracy on a real Apple Watch hasn't been measured
 yet – the evaluation above is on held-out RecoFit participants.
@@ -158,9 +175,26 @@ vertical travel, push/pull travel). The most rhythmic one (autocorrelation) is c
 there-and-back cycle is counted with hysteresis. Velocity thresholds split each rep into lifting and
 lowering phases, and zero-velocity updates give accurate travel distances.
 
+**Personal measurements (from calibration).** Besides learning how you wear the watch, calibration measures
+your body, shown on the iPhone's Today tab:
+- **Arm length** – a straight arm swinging up by 90° (arms down → arm forward) lifts the watch by exactly one
+  arm length; the watch measures that rise from its accelerometer (still at both ends, so the velocity is known
+  to be zero there). Reaching overhead gives a second, cross-checked estimate.
+- **Forearm, upper arm, height, shoulder height** – estimated from the arm length with standard body
+  proportions (Drillis & Contini), so they're approximate (±5–10 %).
+- **Your reference angles** – your straight arm forward and to the side at shoulder height, your overhead reach,
+  and how far your forearm turns from palm-down to palm-up.
+
+These are used for: the grip and pivot checks above; scaling expected travel distances to your size; "finish
+the top" checks against *your* shoulder height and overhead reach (someone with stiff shoulders isn't told to
+reach higher than they can); "press all the way up" and "squat deeper" against the travel a full rep should
+have at your arm length and height; and the 3-D arm view's forearm length. Keep your arm straight when raising
+it forward during calibration – that's the step that measures it.
+
 **Feedback.** Partial reps (vs. your best reps in the set), incomplete top/bottom for curls, raises and
-triceps work (absolute angles from calibration), rushed lifting or lowering, swinging, inconsistent range,
-and speed loss across the set (a velocity-based-training fatigue indicator).
+triceps work (against your own reference angles), press reach and squat depth for your size, rushed lifting or
+lowering, swinging, inconsistent range, and speed loss across the set (a velocity-based-training fatigue
+indicator).
 
 ## 7. Supported exercises
 

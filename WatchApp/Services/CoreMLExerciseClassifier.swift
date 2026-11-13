@@ -21,6 +21,8 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
     /// earlier windows never change while re-analysing it.
     private var cache: [Double: [ExerciseType: Double]] = [:]
     private var cacheSetStart: Double?
+    /// Exercises the model was trained on (it says nothing about the others).
+    private(set) var knownExercises: Set<ExerciseType> = []
 
     init?(bundle: Bundle = .main) {
         guard let url = bundle.url(forResource: Self.modelName, withExtension: "mlmodelc"),
@@ -48,6 +50,8 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
         self.inputColumns = columns
         self.stateInput = state
         self.probabilityOutput = output
+        let labels = (model.modelDescription.classLabels as? [String]) ?? []
+        self.knownExercises = Set(labels.compactMap(ExerciseType.init(rawValue:)))
     }
 
     func classify(_ features: MotionFeatures, samples: [ArmSample]) -> [ExerciseCandidate] {
@@ -120,6 +124,7 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
                     result[exercise] = value.doubleValue
                 }
             }
+            knownExercises.formUnion(result.keys)  // in case the model doesn't list its labels
             return result
         } catch {
             return nil
@@ -143,11 +148,6 @@ struct BlendedExerciseClassifier: ExerciseClassifying {
         // Your own confirmed sets shift trust towards the personalised classifier.
         let learned = Double(prototype.personalization.totalExamples)
         let w = max(0.3, coreMLWeight * 20 / (20 + learned))
-        var combined: [ExerciseType: Double] = [:]
-        for c in base { combined[c.exercise, default: 0] += (1 - w) * c.probability }
-        for c in ml { combined[c.exercise, default: 0] += w * c.probability }
-        let total = combined.values.reduce(0, +)
-        return combined.map { ExerciseCandidate(exercise: $0.key, probability: $0.value / max(total, 1e-9)) }
-            .sorted { $0.probability > $1.probability }
+        return ClassifierBlend.combine(prototype: base, model: ml, modelKnows: coreML.knownExercises, modelWeight: w)
     }
 }

@@ -17,7 +17,8 @@ enum FeedbackEngine {
     }
 
     static func repMetrics(_ signals: MotionSignals, detection: RepDetectionResult,
-                           exercise: ExerciseType?, thresholds: Thresholds = Thresholds()) -> [RepMetrics] {
+                           exercise: ExerciseType?, thresholds: Thresholds = Thresholds(),
+                           body: BodyProfile = .typical) -> [RepMetrics] {
         let dt = signals.dt
         let kind = detection.signal
         let segs = detection.segments
@@ -74,7 +75,7 @@ enum FeedbackEngine {
             r.rangeFraction = min(1.2, rep.rangeOfMotion / reference)
             var issues: [RepIssue] = []
             if r.rangeFraction < thresholds.partialFraction { issues.append(.partialRange) }
-            issues.append(contentsOf: positionIssues(rep, exercise: exercise))
+            issues.append(contentsOf: positionIssues(rep, exercise: exercise, body: body))
             if !ballistic {
                 if rep.concentricDuration < thresholds.minConcentric { issues.append(.rushedLift) }
                 if rep.eccentricDuration < thresholds.minEccentric
@@ -96,19 +97,29 @@ enum FeedbackEngine {
     }
 
     /// Exercise-specific checks on the absolute forearm angle (thanks to calibration).
-    static func positionIssues(_ rep: RepMetrics, exercise: ExerciseType?) -> [RepIssue] {
+    /// Top/bottom checks against the user's own reference angles from calibration: their straight
+    /// arm at shoulder height (forward / to the side) and their overhead reach. The lowest and
+    /// highest point of the rep are used, whichever end the rep started from. (A hanging arm is
+    /// -90° by definition, because calibration takes "arms down" as the forearm's direction.)
+    static func positionIssues(_ rep: RepMetrics, exercise: ExerciseType?, body: BodyProfile = .typical) -> [RepIssue] {
         guard let exercise else { return [] }
+        let low = min(rep.startElevation, rep.peakElevation)
+        let high = max(rep.startElevation, rep.peakElevation)
         var issues: [RepIssue] = []
         switch exercise {
         case .bicepCurl, .hammerCurl:
-            if rep.startElevation > -60 { issues.append(.incompleteBottom) }
-            if rep.peakElevation < 15 { issues.append(.incompleteTop) }
-        case .lateralRaise, .frontRaise:
-            if rep.peakElevation < -25 { issues.append(.incompleteTop) }
+            if low > -60 { issues.append(.incompleteBottom) }
+            if high < body.forwardElevation + 15 { issues.append(.incompleteTop) }
+        case .lateralRaise:
+            if high < body.sideElevation - 25 { issues.append(.incompleteTop) }
+        case .frontRaise:
+            if high < body.forwardElevation - 25 { issues.append(.incompleteTop) }
         case .tricepsPushdown:
-            if rep.peakElevation > -55 { issues.append(.incompleteBottom) }
-        case .overheadTricepsExtension, .skullCrusher:
-            if rep.startElevation < 55 { issues.append(.incompleteTop) }
+            if low > -55 { issues.append(.incompleteBottom) }
+        case .overheadTricepsExtension:
+            if high < body.overheadElevation - 25 { issues.append(.incompleteTop) }
+        case .skullCrusher:
+            if high < 55 { issues.append(.incompleteTop) }
         default:
             break
         }
@@ -130,7 +141,7 @@ enum FeedbackEngine {
         return Int(max(0, min(100, s)).rounded())
     }
 
-    static func setFeedback(_ reps: [RepMetrics], exercise: ExerciseType?) -> SetFeedback {
+    static func setFeedback(_ reps: [RepMetrics], exercise: ExerciseType?, body: BodyProfile = .typical) -> SetFeedback {
         guard !reps.isEmpty else { return .empty }
         let ranges = reps.map { $0.rangeOfMotion }
         let avgRange = SignalMath.mean(ranges)
@@ -166,6 +177,27 @@ enum FeedbackEngine {
             default: detail = "Squeeze all the way to the top of the movement."
             }
             tips.append(FeedbackTip(kind: .warning, title: "Finish the top", detail: detail))
+        }
+        // Reach / depth for the user's size (arm length and height from calibration).
+        if n >= 3, reps[0].unit == .centimeters {
+            let forWhom = body.isArmLengthMeasured ? "for your arm length" : "for an average-sized adult"
+            switch exercise {
+            case .shoulderPress?:
+                let full = body.fullPressTravel * 100
+                if avgRange < 0.55 * full {
+                    tips.append(FeedbackTip(kind: .warning, title: "Press all the way up",
+                                            detail: String(format: "Your reps moved about %.0f cm – a full press %@ is about %.0f cm. Straighten your arms overhead each rep.", avgRange, forWhom, full)))
+                }
+            case .squat?, .gobletSquat?:
+                let full = body.parallelSquatTravel * 100
+                if avgRange < 0.5 * full {
+                    let height = body.isArmLengthMeasured ? String(format: " (about %.2f m tall)", body.estimatedHeight) : ""
+                    tips.append(FeedbackTip(kind: .warning, title: "Squat deeper",
+                                            detail: String(format: "Your hands dropped about %.0f cm – reaching parallel %@%@ is about %.0f cm.", avgRange, forWhom, height, full)))
+                }
+            default:
+                break
+            }
         }
         if frequent(.rushedLowering) {
             tips.append(FeedbackTip(kind: .warning, title: "Slow the lowering",

@@ -5,6 +5,7 @@ import UIKit
 /// exercise guess, coaching cue, rest timer and all controls – no need to turn your wrist.
 struct LiveWorkoutView: View {
     @EnvironmentObject var connectivity: PhoneConnectivityService
+    @EnvironmentObject var store: WorkoutStore
     @State private var showExercisePicker = false
     @State private var confirmEnd = false
     @State private var dismissedReview: UUID?
@@ -54,7 +55,8 @@ struct LiveWorkoutView: View {
                             .foregroundStyle(.orange)
                     }
                 }
-                ArmMotionView(frames: connectivity.frames, lastArrival: connectivity.lastFrameArrival)
+                ArmMotionView(frames: connectivity.frames, lastArrival: connectivity.lastFrameArrival,
+                              forearmLength: store.calibration?.body?.forearmLength ?? MotionFrameBuilder.defaultWatchRadius)
                     .frame(height: 280)
                     .background(.background.secondary, in: RoundedRectangle(cornerRadius: 18))
                 repBlock(state)

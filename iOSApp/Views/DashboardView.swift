@@ -188,9 +188,12 @@ struct DashboardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 if let c = store.calibration {
                     Text("Watch calibrated").font(.headline)
-                    Text("\(c.date, style: .relative) ago · \(c.wrist.rawValue) wrist · overhead reach \(Int(c.overheadElevation))°")
+                    Text("\(c.date, style: .relative) ago · \(c.wrist.rawValue) wrist")
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                    if let body = c.body {
+                        BodyMeasurementsView(measurements: body)
+                    }
                 } else {
                     Text("Calibrate on your watch").font(.headline)
                     Text("Before tracking, the watch guides you through 5 poses: arm down, forward, palm up, to the side and overhead. It vibrates as each pose is captured.")
@@ -202,5 +205,41 @@ struct DashboardView: View {
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14))
+    }
+}
+
+/// The personal measurements calibration took, which tailor tracking and feedback to the user.
+struct BodyMeasurementsView: View {
+    let measurements: BodyProfile
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("Your measurements").font(.subheadline.bold()).padding(.top, 4)
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 3) {
+                if measurements.isArmLengthMeasured {
+                    row("Arm (shoulder to watch)", cm(measurements.armLength))
+                    row("Forearm (elbow to watch)", "≈ " + cm(measurements.forearmLength))
+                    row("Height", String(format: "≈ %.2f m", measurements.estimatedHeight))
+                    row("Shoulder height", String(format: "≈ %.2f m", measurements.shoulderHeight))
+                }
+                row("Overhead reach", "\(Int(measurements.overheadElevation.rounded()))°")
+                row("Palm turn (down → up)", "\(Int(measurements.supinationRange.rounded()))°")
+            }
+            .font(.caption)
+            Text(measurements.isArmLengthMeasured
+                 ? "Measured from how far your watch rose as your straight arm swung up; forearm and height are estimated from typical body proportions. Used for exercise recognition, form checks and the arm animation."
+                 : "Arm length wasn't measured – keep your arm straight when raising it forward during calibration. Average proportions are used meanwhile.")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func cm(_ metres: Double) -> String { "\(Int((metres * 100).rounded())) cm" }
+
+    private func row(_ label: String, _ value: String) -> some View {
+        GridRow {
+            Text(label).foregroundStyle(.secondary)
+            Text(value).monospacedDigit()
+        }
     }
 }

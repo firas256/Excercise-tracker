@@ -76,12 +76,15 @@ struct CalibrationSummary: Codable, Equatable, Sendable {
     var wrist: WristSide
     var overheadElevation: Double
     var supinationRange: Double
+    /// Personal measurements (nil from older watch versions).
+    var body: BodyProfile?
 
     init(profile: CalibrationProfile) {
         date = profile.createdAt
         wrist = profile.wrist
         overheadElevation = profile.overheadElevation
         supinationRange = profile.supinationRange
+        body = profile.body
     }
 }
 

@@ -33,11 +33,35 @@ struct PrototypeExerciseClassifier: ExerciseClassifying {
     var candidates: [ExerciseType]
     /// Strength (in pseudo-examples) of the built-in prototype when blending with user data.
     var priorStrength: Double = 2
+    /// The user's measured body: the built-in patterns are scaled to their arm length, and the
+    /// swing radius is compared with their own forearm / arm length.
+    var body: BodyProfile
 
     init(personalization: ClassifierPersonalization = ClassifierPersonalization(),
-         candidates: [ExerciseType] = ExerciseType.allCases.filter { $0.isAutoDetectable }) {
+         candidates: [ExerciseType] = ExerciseType.allCases.filter { $0.isAutoDetectable },
+         body: BodyProfile = .typical) {
         self.personalization = personalization
         self.candidates = candidates
+        self.body = body
+    }
+
+    /// The built-in pattern fitted to this user's body.
+    func bodyStats(for proto: ExercisePrototype) -> [MotionFeatures.Key: FeatureGaussian] {
+        var stats = proto.stats
+        // Distances scale with arm length (a shorter arm moves the weight fewer centimetres).
+        for key in [MotionFeatures.Key.verticalAmplitude, .forearmAmplitude] {
+            if var g = stats[key] {
+                g.mean *= body.sizeScale
+                g.sd *= body.sizeScale
+                stats[key] = g
+            }
+        }
+        switch ExercisePrototypes.pivot(proto.exercise) {
+        case .elbow?: stats[.pivotRadius] = FeatureGaussian(mean: body.forearmLength * 100, sd: 8)
+        case .shoulder?: stats[.pivotRadius] = FeatureGaussian(mean: body.armLength * 100 * 0.95, sd: 13)
+        case nil: break
+        }
+        return stats
     }
 
     func classify(_ features: MotionFeatures, samples: [ArmSample] = []) -> [ExerciseCandidate] {
@@ -67,13 +91,14 @@ struct PrototypeExerciseClassifier: ExerciseClassifying {
 
     /// Prototype statistics blended with the user's own examples (conjugate-style update).
     func personalizedStats(for proto: ExercisePrototype) -> [MotionFeatures.Key: FeatureGaussian] {
-        guard let examples = personalization.examples[proto.exercise], !examples.isEmpty else { return proto.stats }
-        var out = proto.stats
+        let base = bodyStats(for: proto)
+        guard let examples = personalization.examples[proto.exercise], !examples.isEmpty else { return base }
+        var out = base
         for key in MotionFeatures.Key.allCases {
             let xs = examples.compactMap { $0.value(key) }
             guard !xs.isEmpty else { continue }
-            let prior = proto.stats[key] ?? FeatureGaussian(mean: SignalMath.mean(xs), sd: ExercisePrototypes.defaultSD(key))
-            let k0 = proto.stats[key] == nil ? 0.5 : priorStrength
+            let prior = base[key] ?? FeatureGaussian(mean: SignalMath.mean(xs), sd: ExercisePrototypes.defaultSD(key))
+            let k0 = base[key] == nil ? 0.5 : priorStrength
             let n = Double(xs.count)
             let mean = (k0 * prior.mean + xs.reduce(0, +)) / (k0 + n)
             let ss = xs.reduce(0) { $0 + ($1 - mean) * ($1 - mean) }
