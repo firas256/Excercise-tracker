@@ -372,8 +372,10 @@ add(project_id, {
     "isa": "PBXProject",
     "attributes": {
         "BuildIndependentTargetsInParallel": "1",
-        "LastSwiftUpdateCheck": "1500",
-        "LastUpgradeCheck": "1500",
+        # High values stop newer Xcodes offering "Update to recommended settings", which would
+        # rewrite this generated file locally and make the next `git pull` fail.
+        "LastSwiftUpdateCheck": "9999",
+        "LastUpgradeCheck": "9999",
         "TargetAttributes": {
             ios_target: {"CreatedOnToolsVersion": "15.0"},
             watch_target: {"CreatedOnToolsVersion": "15.0"},
@@ -427,7 +429,7 @@ def scheme(target_id, target_name, test_id=None, test_name=None):
            f'            </BuildableReference>\n')
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1500"
+   LastUpgradeVersion = "9999"
    version = "1.7">
    <BuildAction
       parallelizeBuildables = "YES"

@@ -63,20 +63,16 @@ to pick it there (picking it in Xcode edits the shared project file, which makes
 
 ### Updating to a new version
 
-```bash
-git pull
-```
-
-If git says *"Please commit your changes or stash them before you merge"*, Xcode changed the project
-file (usually because a Team was picked in Xcode). Put those edits aside and update:
+Quit Xcode, then in the project folder run:
 
 ```bash
-git stash
+./scripts/update.sh
 ```
 
-```bash
-git pull
-```
+It pulls the latest version. If Xcode has edited the project file (the cause of git's *"Please commit
+your changes or stash them before you merge"*), it first sets those edits aside with `git stash` and
+keeps your Team ID in `Config/Local.xcconfig`. Don't commit Xcode's edits – the project file is generated
+and every update replaces it. A plain `git pull` works too when Xcode hasn't touched anything.
 
 ## 4. Run it on your devices
 
