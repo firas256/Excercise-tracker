@@ -38,3 +38,14 @@ jobs:
           xcodebuild -project ExerciseTracker.xcodeproj -scheme "ExerciseTracker Watch App" \
             -configuration Debug -destination 'generic/platform=watchOS' \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet build
+
+  model-check:
+    name: Core ML model matches its PyTorch source
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check the shipped exercise model
+        run: |
+          python3 -m venv .venv
+          .venv/bin/pip install -q coremltools numpy
+          .venv/bin/python ML/training/check_coreml.py WatchApp/ML/ExerciseActivityClassifier.mlpackage ML/training/fixtures

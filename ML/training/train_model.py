@@ -82,8 +82,8 @@ def build(x, y, subjects, chosen, classes, hop, rng, cap_other=True):
 def augment(batch, rng):
     """batch: (B, WINDOW, 9) numpy. Mirror, strap rotation, tilt, tempo and amplitude changes, noise."""
     B = len(batch)
-    # Tempo: resample each window by a random factor (0.8x .. 1.25x speed), keeping its length.
-    s = rng.uniform(0.8, 1.25, (B, 1))
+    # Tempo: resample each window by a random factor (0.6x .. 1.4x speed), keeping its length.
+    s = np.exp(rng.uniform(math.log(0.6), math.log(1.4), (B, 1)))
     src = np.clip((np.arange(WINDOW)[None, :] - WINDOW / 2) * s + WINDOW / 2, 0, WINDOW - 1)
     lo = np.floor(src).astype(int)
     hi = np.minimum(lo + 1, WINDOW - 1)
@@ -111,8 +111,12 @@ def augment(batch, rng):
     g = np.einsum("btk,bkj->btj", g, M)
     a = np.einsum("btk,bkj->btj", a, M)
     w = np.einsum("btk,bkj->btj", w, M)
-    a *= rng.uniform(0.8, 1.2, (B, 1, 1))
-    w *= rng.uniform(0.8, 1.2, (B, 1, 1))
+    # Physically consistent tempo change: angular rate scales with speed, acceleration with speed^2.
+    a *= (s ** 2)[:, :, None]
+    w *= s[:, :, None]
+    # The watch sits at the wrist (RecoFit's band sat mid-forearm), so allow up to ~2x acceleration.
+    a *= np.exp(rng.uniform(math.log(0.7), math.log(2.0), (B, 1, 1)))
+    w *= rng.uniform(0.8, 1.25, (B, 1, 1))
     a += rng.normal(0, 0.02, a.shape)
     w += rng.normal(0, 0.03, w.shape)
     g /= np.linalg.norm(g, axis=2, keepdims=True)

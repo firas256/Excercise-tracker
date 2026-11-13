@@ -240,6 +240,10 @@
 			isa = PBXBuildFile;
 			fileRef = AD355BE8DC0788C515E78509;
 		};
+		D33067D58E432AD8EFF776F5 = {
+			isa = PBXBuildFile;
+			fileRef = 5051A890FCCD4EADFFD27683;
+		};
 		D690F341613AFE0AD007FF17 = {
 			isa = PBXBuildFile;
 			fileRef = F0DCADE2A52855DC9B58054A;
@@ -432,6 +436,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = text.plist.entitlements;
 			path = WatchApp.entitlements;
+			sourceTree = "<group>";
+		};
+		5051A890FCCD4EADFFD27683 = {
+			isa = PBXFileReference;
+			lastKnownFileType = folder.mlpackage;
+			path = ExerciseActivityClassifier.mlpackage;
 			sourceTree = "<group>";
 		};
 		5531A0400C24F00A0C3222D7 = {
@@ -814,6 +824,7 @@
 		68E3AD3FD522A877A164FA5C = {
 			isa = PBXGroup;
 			children = (
+				870C0C1024248FD9879ABB54,
 				2853F7BC3CCF346282E99830,
 				B1B062FA99B282C9F0CFA5D8,
 				B189CB0CF34BC6840EE789AF,
@@ -848,6 +859,14 @@
 				F2F53C5DAA6E578830C61A18,
 			);
 			path = Math;
+			sourceTree = "<group>";
+		};
+		870C0C1024248FD9879ABB54 = {
+			isa = PBXGroup;
+			children = (
+				5051A890FCCD4EADFFD27683,
+			);
+			path = ML;
 			sourceTree = "<group>";
 		};
 		9D10A42589C8F5479091BEBD = {
@@ -1171,6 +1190,7 @@
 				6969F44A06CA5DDDABA5B299,
 				A4BEF313ACCB533FB9E26752,
 				345DB7ADA3ABC19B1937F0D9,
+				D33067D58E432AD8EFF776F5,
 				2A653E69BA0489081D4574E8,
 				F38DFD417D140E609BD43785,
 				A97EA3D9ACF5DAF52E7A63E8,
