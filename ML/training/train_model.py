@@ -228,6 +228,7 @@ def main():
     ap.add_argument("out")
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--skip-final", action="store_true", help="only run the held-out evaluation")
+    ap.add_argument("--final-only", action="store_true", help="skip the held-out evaluation")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     report = open(os.path.join(args.out, "report.txt"), "w")
@@ -247,15 +248,17 @@ def main():
     log(f"classes ({len(classes)}): {classes}")
     log(f"subjects: {len(train_subjects)} train, {len(test_subjects)} held out")
 
-    Xtr, Ytr, _ = build(x, y, subjects, train_subjects, classes, TRAIN_HOP, rng)
-    Xte, Yte, Rte = build(x, y, subjects, test_subjects, classes, EVAL_HOP, rng, cap_other=False)
-    log(f"windows: {len(Xtr)} train, {len(Xte)} test")
-    model = ExerciseNet(len(classes))
-    log(f"parameters: {sum(p.numel() for p in model.parameters())}")
-    train(model, Xtr, Ytr, classes, args.epochs, rng, log)
-    log("\nHeld-out subjects (never seen in training):")
-    acc = evaluate(model, Xte, Yte, Rte, classes, log)
-    summary = f"held-out-subject set accuracy on exercises: {acc:.2f}"
+    summary = "see ML/README.md for held-out-subject evaluation"
+    if not args.final_only:
+        Xtr, Ytr, _ = build(x, y, subjects, train_subjects, classes, TRAIN_HOP, rng)
+        Xte, Yte, Rte = build(x, y, subjects, test_subjects, classes, EVAL_HOP, rng, cap_other=False)
+        log(f"windows: {len(Xtr)} train, {len(Xte)} test")
+        model = ExerciseNet(len(classes))
+        log(f"parameters: {sum(p.numel() for p in model.parameters())}")
+        train(model, Xtr, Ytr, classes, args.epochs, rng, log)
+        log("\nHeld-out subjects (never seen in training):")
+        acc = evaluate(model, Xte, Yte, Rte, classes, log)
+        summary = f"held-out-subject set accuracy on exercises: {acc:.2f}"
     if args.skip_final:
         return
 
