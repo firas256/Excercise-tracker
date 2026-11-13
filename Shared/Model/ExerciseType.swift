@@ -51,6 +51,8 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
     case lunge
     case overheadTricepsExtension
     case skullCrusher
+    case tricepsKickback
+    case reverseFly
     case kettlebellSwing
     // Machines & cables
     case latPulldown
@@ -65,6 +67,10 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
     case pullUp
     case pushUp
     case dip
+    case sitUp
+    case russianTwist
+    case burpee
+    case jumpingJacks
 
     var id: String { rawValue }
 
@@ -88,6 +94,12 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
         case .overheadTricepsExtension: return "Overhead Triceps Ext."
         case .skullCrusher: return "Skull Crusher"
         case .kettlebellSwing: return "Kettlebell Swing"
+        case .tricepsKickback: return "Triceps Kickback"
+        case .reverseFly: return "Reverse Fly"
+        case .sitUp: return "Sit-up / Crunch"
+        case .russianTwist: return "Russian Twist"
+        case .burpee: return "Burpee"
+        case .jumpingJacks: return "Jumping Jacks"
         case .latPulldown: return "Lat Pulldown"
         case .seatedCableRow: return "Seated Cable Row"
         case .chestPressMachine: return "Chest Press Machine"
@@ -107,7 +119,7 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
         case .latPulldown, .seatedCableRow, .chestPressMachine, .pecDeck, .tricepsPushdown,
              .legPress, .legExtension, .legCurl:
             return .machine
-        case .pullUp, .pushUp, .dip:
+        case .pullUp, .pushUp, .dip, .sitUp, .russianTwist, .burpee, .jumpingJacks:
             return .bodyweight
         default:
             return .freeWeight
@@ -117,7 +129,10 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
     var muscleGroup: String {
         switch self {
         case .bicepCurl, .hammerCurl: return "Biceps"
-        case .overheadTricepsExtension, .skullCrusher, .tricepsPushdown, .dip: return "Triceps"
+        case .overheadTricepsExtension, .skullCrusher, .tricepsPushdown, .dip, .tricepsKickback: return "Triceps"
+        case .reverseFly: return "Rear delts"
+        case .sitUp, .russianTwist: return "Core"
+        case .burpee, .jumpingJacks: return "Conditioning"
         case .shoulderPress, .lateralRaise, .frontRaise, .uprightRow: return "Shoulders"
         case .shrug: return "Traps"
         case .benchPress, .chestFly, .chestPressMachine, .pecDeck, .pushUp: return "Chest"
@@ -141,10 +156,11 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
         switch self {
         case .bicepCurl, .hammerCurl, .lateralRaise, .frontRaise, .shoulderPress, .tricepsPushdown,
              .overheadTricepsExtension, .skullCrusher, .kettlebellSwing, .chestFly, .uprightRow,
-             .benchPress, .latPulldown, .bentOverRow, .pecDeck:
+             .benchPress, .latPulldown, .bentOverRow, .pecDeck, .tricepsKickback, .reverseFly,
+             .russianTwist, .jumpingJacks:
             return .good
         case .deadlift, .romanianDeadlift, .squat, .gobletSquat, .lunge, .seatedCableRow,
-             .chestPressMachine, .shrug:
+             .chestPressMachine, .shrug, .sitUp, .burpee:
             return .moderate
         case .legPress, .legExtension, .legCurl, .pullUp, .pushUp, .dip:
             return .limited
@@ -198,6 +214,12 @@ enum ExerciseType: String, Codable, CaseIterable, Identifiable, Sendable {
         case .pullUp: return "Full hang to chin over bar, no kipping."
         case .pushUp: return "Body in a straight line, chest to just above the floor."
         case .dip: return "Lower until upper arms are parallel to the floor, slight forward lean."
+        case .tricepsKickback: return "Upper arm parallel to the floor and still, straighten the elbow fully."
+        case .reverseFly: return "Hinge forward, soft elbows, lead with the elbows and squeeze the shoulder blades."
+        case .sitUp: return "Curl up vertebra by vertebra, don't pull on your neck."
+        case .russianTwist: return "Lean back with a long spine, rotate from the ribs, not just the arms."
+        case .burpee: return "Chest to the floor, jump up with hips extended, land softly."
+        case .jumpingJacks: return "Light on the balls of your feet, arms fully overhead."
         }
     }
 

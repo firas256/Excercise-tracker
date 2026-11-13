@@ -1,19 +1,26 @@
 import CoreML
 import Foundation
 
-/// Optional Core ML exercise classifier.
+/// Core ML exercise classifier.
 ///
-/// Train a model with Create ML's *Activity Classifier* template on the CSV recordings the iPhone
-/// app exports (see ML/README.md), name it `ExerciseActivityClassifier.mlmodel` and add it to the
-/// Watch App target. If present, it is used automatically and blended with the built-in classifier.
+/// The app ships `ExerciseActivityClassifier.mlpackage`, a small 1-D CNN trained on the Microsoft
+/// Research RecoFit dataset (see ML/README.md). You can replace it with your own model trained in
+/// Create ML (Activity Classifier) on the CSVs the iPhone app exports, as long as it keeps the name.
+/// Inputs are matched by name to the arm-frame columns (`TrainingCSV.featureColumns`); the window
+/// length comes from the input shape and the sample rate from the model's "sample_rate" metadata.
 final class CoreMLExerciseClassifier: ExerciseClassifying {
     static let modelName = "ExerciseActivityClassifier"
 
     private let model: MLModel
     private let windowSize: Int
+    private let modelRate: Double?
     private let inputColumns: [(name: String, column: Int)]
     private let stateInput: (name: String, shape: [NSNumber])?
     private let probabilityOutput: String
+    /// Window predictions keyed by the window's first timestamp; a set's buffer only grows, so
+    /// earlier windows never change while re-analysing it.
+    private var cache: [Double: [ExerciseType: Double]] = [:]
+    private var cacheSetStart: Double?
 
     init?(bundle: Bundle = .main) {
         guard let url = bundle.url(forResource: Self.modelName, withExtension: "mlmodelc"),
@@ -34,30 +41,60 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
         guard !columns.isEmpty, window > 1,
               let output = model.modelDescription.outputDescriptionsByName.first(where: { $0.value.type == .dictionary })?.key
         else { return nil }
+        let metadata = model.modelDescription.metadata[MLModelMetadataKey.creatorDefinedKey] as? [String: String]
         self.model = model
         self.windowSize = window
+        self.modelRate = metadata?["sample_rate"].flatMap(Double.init)
         self.inputColumns = columns
         self.stateInput = state
         self.probabilityOutput = output
     }
 
     func classify(_ features: MotionFeatures, samples: [ArmSample]) -> [ExerciseCandidate] {
-        guard samples.count >= windowSize else { return [] }
-        let rows = samples.map { TrainingCSV.values(of: $0) }
+        guard samples.count > 1, let first = samples.first, let last = samples.last, last.t > first.t else { return [] }
+        if cacheSetStart != first.t {
+            cache.removeAll()
+            cacheSetStart = first.t
+        }
+        // Resample to the model's rate by averaging groups of samples (e.g. 50 Hz -> 25 Hz).
+        let appRate = Double(samples.count - 1) / (last.t - first.t)
+        let factor = max(1, Int(((modelRate.map { appRate / $0 }) ?? 1).rounded()))
+        var rows: [[Double]] = []
+        var times: [Double] = []
+        rows.reserveCapacity(samples.count / factor)
+        var i = 0
+        while i + factor <= samples.count {
+            var acc = [Double](repeating: 0, count: TrainingCSV.featureColumns.count)
+            for k in i..<(i + factor) {
+                let v = TrainingCSV.values(of: samples[k])
+                for c in 0..<acc.count { acc[c] += v[c] }
+            }
+            for c in 0..<acc.count { acc[c] /= Double(factor) }
+            let gn = (acc[0] * acc[0] + acc[1] * acc[1] + acc[2] * acc[2]).squareRoot()
+            if gn > 1e-6 { for c in 0..<3 { acc[c] /= gn } }
+            rows.append(acc)
+            times.append(samples[i].t)
+            i += factor
+        }
+        guard rows.count >= windowSize else { return [] }
+
         var sums: [ExerciseType: Double] = [:]
         var windows = 0
         var start = 0
+        let hop = max(1, windowSize / 2)
         while start + windowSize <= rows.count {
-            if let probabilities = predict(rows: rows[start..<(start + windowSize)]) {
+            let key = times[start]
+            let probabilities = cache[key] ?? predict(rows: rows[start..<(start + windowSize)])
+            if let probabilities {
+                cache[key] = probabilities
                 for (label, p) in probabilities { sums[label, default: 0] += p }
                 windows += 1
             }
-            start += max(1, windowSize / 2)
+            start += hop
         }
         guard windows > 0 else { return [] }
-        let total = sums.values.reduce(0, +)
-        guard total > 0 else { return [] }
-        return sums.map { ExerciseCandidate(exercise: $0.key, probability: $0.value / total) }
+        // Probabilities of "other" (not a tracked exercise) are dropped, so these may sum to < 1.
+        return sums.map { ExerciseCandidate(exercise: $0.key, probability: $0.value / Double(windows)) }
             .sorted { $0.probability > $1.probability }
     }
 
@@ -65,7 +102,7 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
         do {
             var inputs: [String: Any] = [:]
             for (name, column) in inputColumns {
-                let array = try MLMultiArray(shape: [NSNumber(value: windowSize)], dataType: .double)
+                let array = try MLMultiArray(shape: [NSNumber(value: windowSize)], dataType: .float32)
                 for (i, row) in rows.enumerated() { array[i] = NSNumber(value: row[column]) }
                 inputs[name] = MLFeatureValue(multiArray: array)
             }
@@ -90,21 +127,25 @@ final class CoreMLExerciseClassifier: ExerciseClassifying {
     }
 }
 
-/// Combines the built-in prototype classifier with an optional Core ML model.
+/// Combines the built-in prototype classifier (which learns from your corrections) with the
+/// Core ML model (which learned from many people).
 struct BlendedExerciseClassifier: ExerciseClassifying {
     var prototype: PrototypeExerciseClassifier
     var coreML: CoreMLExerciseClassifier?
     /// Weight of the Core ML model when it is available.
-    var coreMLWeight = 0.6
+    var coreMLWeight = 0.65
 
     func classify(_ features: MotionFeatures, samples: [ArmSample]) -> [ExerciseCandidate] {
         let base = prototype.classify(features, samples: samples)
         guard let coreML else { return base }
         let ml = coreML.classify(features, samples: samples)
         guard !ml.isEmpty else { return base }
+        // Your own confirmed sets shift trust towards the personalised classifier.
+        let learned = Double(prototype.personalization.totalExamples)
+        let w = max(0.3, coreMLWeight * 20 / (20 + learned))
         var combined: [ExerciseType: Double] = [:]
-        for c in base { combined[c.exercise, default: 0] += (1 - coreMLWeight) * c.probability }
-        for c in ml { combined[c.exercise, default: 0] += coreMLWeight * c.probability }
+        for c in base { combined[c.exercise, default: 0] += (1 - w) * c.probability }
+        for c in ml { combined[c.exercise, default: 0] += w * c.probability }
         let total = combined.values.reduce(0, +)
         return combined.map { ExerciseCandidate(exercise: $0.key, probability: $0.value / max(total, 1e-9)) }
             .sorted { $0.probability > $1.probability }

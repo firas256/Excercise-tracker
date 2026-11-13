@@ -34,14 +34,16 @@ extension ExerciseType {
     var preferredSignal: RepSignalKind {
         switch self {
         case .bicepCurl, .hammerCurl, .lateralRaise, .frontRaise, .uprightRow, .chestFly,
-             .overheadTricepsExtension, .skullCrusher, .kettlebellSwing, .tricepsPushdown, .pushUp:
+             .overheadTricepsExtension, .skullCrusher, .kettlebellSwing, .tricepsPushdown, .pushUp,
+             .tricepsKickback, .reverseFly, .jumpingJacks:
             return .elevation
-        case .pecDeck:
+        case .pecDeck, .russianTwist:
             return .rotation
         case .seatedCableRow, .chestPressMachine:
             return .forearm
         case .shoulderPress, .shrug, .benchPress, .bentOverRow, .deadlift, .romanianDeadlift, .squat,
-             .gobletSquat, .lunge, .latPulldown, .legPress, .legExtension, .legCurl, .pullUp, .dip:
+             .gobletSquat, .lunge, .latPulldown, .legPress, .legExtension, .legCurl, .pullUp, .dip,
+             .sitUp, .burpee:
             return .vertical
         }
     }

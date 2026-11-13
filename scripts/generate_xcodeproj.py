@@ -57,6 +57,8 @@ FILE_TYPES = {
     ".entitlements": "text.plist.entitlements",
     ".plist": "text.plist.xml",
     ".md": "net.daringfireball.markdown",
+    ".mlpackage": "folder.mlpackage",
+    ".mlmodel": "file.mlmodel",
 }
 
 
@@ -75,15 +77,16 @@ def group_for_dir(rel_dir, collect, name=None):
     """Creates a group mirroring a directory. `collect(path, ref)` records source/resource files."""
     children = []
     abs_dir = os.path.join(ROOT, rel_dir)
-    entries = sorted(os.listdir(abs_dir), key=lambda e: (not os.path.isdir(os.path.join(abs_dir, e)) or e.endswith(".xcassets"), e.lower()))
+    leaf_dirs = (".xcassets", ".mlpackage")
+    entries = sorted(os.listdir(abs_dir), key=lambda e: (not os.path.isdir(os.path.join(abs_dir, e)) or e.endswith(leaf_dirs), e.lower()))
     for e in entries:
         if e.startswith("."):
             continue
         rel = os.path.join(rel_dir, e)
         full = os.path.join(ROOT, rel)
-        if os.path.isdir(full) and not e.endswith(".xcassets"):
+        if os.path.isdir(full) and not e.endswith(leaf_dirs):
             children.append(group_for_dir(rel, collect))
-        elif e.endswith((".swift", ".xcassets")):
+        elif e.endswith((".swift", ".xcassets", ".mlpackage", ".mlmodel")):
             ref = file_ref(rel)
             collect(rel, ref)
             children.append(ref)
