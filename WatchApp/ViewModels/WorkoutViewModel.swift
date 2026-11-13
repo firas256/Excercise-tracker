@@ -1,7 +1,8 @@
 import Foundation
 
 /// Live workout logic on the watch: motion → arm frame → `LiveSetTracker` → UI, haptics and
-/// the list of completed sets.
+/// the list of completed sets. Also mirrors everything to the iPhone (state + arm motion) and
+/// accepts the iPhone's buttons, so the workout can be followed and controlled from the phone.
 final class WorkoutViewModel: ObservableObject {
     enum Status: Equatable {
         case waitingForSet
@@ -29,8 +30,20 @@ final class WorkoutViewModel: ObservableObject {
         didSet {
             let value = lockedExercise
             motion.queue.async { self.tracker.lockedExercise = value }
+            publishLiveState()
         }
     }
+
+    /// Heart rate / calories / start time for the phone.
+    weak var session: WorkoutSessionService?
+    /// The phone asked to end the workout.
+    var onEndWorkoutRequested: (() -> Void)?
+    private let frameBuilder = MotionFrameBuilder(outputRate: 15)
+    private var frameBatch: [MotionFrame] = []        // motion queue only
+    private var lastSentLiveState: LiveWorkoutState?
+    private var liveTimer: Timer?
+    private var lastLiveSentAt = Date.distantPast
+    private var workoutActive = false
 
     let store: WatchStore
     private let motion: MotionService
@@ -63,14 +76,32 @@ final class WorkoutViewModel: ObservableObject {
             self.tracker.analyzer = SetAnalyzer(classifier: classifier)
             self.tracker.lockedExercise = locked
             self.tracker.cancelSet()
+            self.frameBuilder.reset()
+            self.frameBatch.removeAll()
         }
         motion.simulationScenario = .workout
         motion.start { [weak self] sample in
             guard let self else { return }
-            let events = self.tracker.ingest(profile.armSample(from: sample))
+            let arm = profile.armSample(from: sample)
+            let events = self.tracker.ingest(arm)
+            // Stream the arm motion to the phone (15 frames/s, sent in small batches).
+            if let frame = self.frameBuilder.add(arm) {
+                self.frameBatch.append(frame)
+                if self.frameBatch.count >= 3 {
+                    WatchConnectivityService.shared.sendFrames(self.frameBatch)
+                    self.frameBatch.removeAll()
+                }
+            }
             guard !events.isEmpty else { return }
             DispatchQueue.main.async { events.forEach(self.handle) }
         }
+        workoutActive = true
+        lastSentLiveState = nil
+        liveTimer?.invalidate()
+        liveTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            self?.publishLiveState()
+        }
+        publishLiveState()
     }
 
     func stop() {
@@ -80,6 +111,13 @@ final class WorkoutViewModel: ObservableObject {
         events.forEach(handle)
         if pendingSet != nil { confirmPendingSet(exercise: nil, reps: nil, weight: nil) }
         status = .waitingForSet
+        workoutActive = false
+        liveTimer?.invalidate()
+        liveTimer = nil
+        var ended = makeLiveState()
+        ended.status = .ended
+        WatchConnectivityService.shared.sendLiveWorkout(ended)
+        lastSentLiveState = ended
     }
 
     func endSetNow() {
@@ -94,6 +132,75 @@ final class WorkoutViewModel: ObservableObject {
         status = .waitingForSet
         repCount = 0
         liveCue = nil
+        publishLiveState()
+    }
+
+    // MARK: iPhone link
+
+    /// A button pressed on the iPhone.
+    func handle(_ command: WatchCommand) {
+        switch command {
+        case .lockExercise(let exercise):
+            lockedExercise = exercise
+        case .endSet:
+            endSetNow()
+        case .discardSet:
+            cancelCurrentSet()
+        case .savePendingSet(let id, let exercise, let reps, let weight):
+            if pendingSet?.id == id { confirmPendingSet(exercise: exercise, reps: reps, weight: weight) }
+        case .discardPendingSet(let id):
+            if pendingSet?.id == id { discardPendingSet() }
+        case .endWorkout:
+            onEndWorkoutRequested?()
+        case .requestState:
+            lastSentLiveState = nil
+            publishLiveState()
+        }
+    }
+
+    private func makeLiveState() -> LiveWorkoutState {
+        var state = LiveWorkoutState.idle
+        switch status {
+        case .waitingForSet: state.status = .waitingForSet
+        case .inSet: state.status = .inSet
+        case .reviewing: state.status = .reviewing
+        }
+        state.repCount = repCount
+        state.liveCue = liveCue
+        state.lastRepFlagged = lastRepFlagged
+        state.candidates = Array(candidates.prefix(3))
+        state.lockedExercise = lockedExercise
+        state.completedSets = completedSets.count
+        state.restStartedAt = restStartedAt
+        state.workoutStartedAt = session?.startDate
+        state.heartRate = session?.heartRate
+        state.activeEnergy = session?.activeEnergy ?? 0
+        if let pending = pendingSet {
+            let analysis = pending.completed.analysis
+            state.pendingSet = PendingSetSummary(
+                id: pending.id,
+                exercise: analysis.exercise,
+                candidates: Array(analysis.candidates.prefix(5)),
+                repCount: analysis.repCount,
+                feedback: analysis.feedback,
+                weight: analysis.exercise.flatMap { store.lastWeight(for: $0) },
+                weightUnit: WatchSettings.weightUnit
+            )
+        }
+        return state
+    }
+
+    /// Sends the current state to the phone if it changed (called on every change and once a second).
+    /// Sends the workout state to the phone when it changed, plus a heartbeat every few seconds
+    /// so the phone knows the watch is still there (and catches up after reconnecting).
+    func publishLiveState() {
+        guard workoutActive else { return }
+        let state = makeLiveState()
+        guard state != lastSentLiveState || Date().timeIntervalSince(lastLiveSentAt) > 5 else { return }
+        if WatchConnectivityService.shared.sendLiveWorkout(state) {
+            lastSentLiveState = state
+            lastLiveSentAt = Date()
+        }
     }
 
     private func makeClassifier() -> ExerciseClassifying {
@@ -149,6 +256,7 @@ final class WorkoutViewModel: ObservableObject {
                 liveCue = nil
             }
         }
+        publishLiveState()
     }
 
     /// Saves the pending set. nil arguments keep the detected values.
@@ -193,6 +301,7 @@ final class WorkoutViewModel: ObservableObject {
         status = .waitingForSet
         restStartedAt = Date()
         liveCue = nil
+        publishLiveState()
     }
 
     func discardPendingSet() {
@@ -200,5 +309,6 @@ final class WorkoutViewModel: ObservableObject {
         status = .waitingForSet
         repCount = 0
         liveCue = nil
+        publishLiveState()
     }
 }

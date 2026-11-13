@@ -58,8 +58,15 @@ final class WatchAppModel: ObservableObject {
         WatchSettings.registerDefaults()
         workout = WorkoutViewModel(store: store)
         calibration = store.calibration
+        workout.session = session
         screen = UserDefaults.standard.bool(forKey: WatchSettings.onboardedKey) ? .home : .onboarding
         WatchConnectivityService.shared.activate()
+        workout.onEndWorkoutRequested = { [weak self] in
+            if case .workout = self?.screen { self?.endWorkout() }
+        }
+        WatchConnectivityService.shared.onCommand = { [weak self] command in
+            self?.workout.handle(command)
+        }
     }
 
     /// Asks for every permission the app needs, up front.

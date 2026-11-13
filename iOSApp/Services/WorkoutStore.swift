@@ -19,8 +19,14 @@ final class WorkoutStore: ObservableObject {
         refreshTrainingCounts()
         // `-demoWorkout YES` launch argument: preload a demo workout (Simulator / screenshots).
         if UserDefaults.standard.bool(forKey: "demoWorkout"), workouts.isEmpty {
-            add(DemoData.makeWorkout(daysAgo: 0))
-            add(DemoData.makeWorkout(daysAgo: 2))
+            let saveRecording: (UUID, ExerciseType, [ArmSample]) -> Void = { [trainingDirectory, fileManager] id, exercise, samples in
+                let dir = trainingDirectory.appendingPathComponent(exercise.rawValue, isDirectory: true)
+                try? fileManager.createDirectory(at: dir, withIntermediateDirectories: true)
+                try? TrainingCSV.make(samples).write(to: dir.appendingPathComponent("\(id.uuidString).csv"), atomically: true, encoding: .utf8)
+            }
+            add(DemoData.makeWorkout(daysAgo: 0, recording: saveRecording))
+            add(DemoData.makeWorkout(daysAgo: 2, recording: saveRecording))
+            refreshTrainingCounts()
         }
     }
 
@@ -115,6 +121,13 @@ final class WorkoutStore: ObservableObject {
     }
 
     var totalTrainingRecordings: Int { trainingCounts.values.reduce(0, +) }
+
+    /// The raw sensor recording of a set, if the watch sent one (it may sit in any exercise folder).
+    func recordingURL(setID: UUID) -> URL? {
+        let name = "\(setID.uuidString).csv"
+        let folders = (try? fileManager.contentsOfDirectory(at: trainingDirectory, includingPropertiesForKeys: nil)) ?? []
+        return folders.map { $0.appendingPathComponent(name) }.first { fileManager.fileExists(atPath: $0.path) }
+    }
 
     /// Zips the training folder (via NSFileCoordinator) for sharing to a Mac / Create ML.
     func makeTrainingExport() -> URL? {

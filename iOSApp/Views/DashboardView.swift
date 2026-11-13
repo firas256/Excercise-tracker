@@ -33,7 +33,11 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
-                    startOnWatchCard
+                    if connectivity.liveWorkout != nil {
+                        liveWorkoutBanner
+                    } else {
+                        startOnWatchCard
+                    }
                     if store.workouts.isEmpty {
                         emptyState
                     } else {
@@ -52,6 +56,33 @@ struct DashboardView: View {
                 WorkoutDetailView(workoutID: id)
             }
         }
+    }
+
+    /// A workout is running on the watch but its screen was minimized.
+    private var liveWorkoutBanner: some View {
+        Button {
+            connectivity.liveWorkoutMinimized = false
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "figure.strengthtraining.traditional")
+                    .font(.title2)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Workout in progress").font(.headline)
+                    if let state = connectivity.liveWorkout {
+                        Text("\(state.completedSets) sets done · \(state.status == .inSet ? "\(state.repCount) reps" : "resting")")
+                            .font(.caption)
+                    }
+                }
+                Spacer()
+                Text("Open").font(.subheadline.bold())
+                Image(systemName: "chevron.up")
+            }
+            .padding()
+            .foregroundStyle(.white)
+            .background(Color.green.gradient, in: RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier("liveWorkoutBanner")
     }
 
     /// Starts the workout on the watch from here; the calibration steps then appear on this screen.

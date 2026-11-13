@@ -113,10 +113,22 @@ it 3× faster, `-simulateMotion NO` turns the script off. On a real watch the re
    different tap (and a spoken hint) means the pose didn't look right – adjust and hold again. Keep the
    iPhone app open on the bench in front of you. (You can turn off "calibrate every workout" in the watch settings.)
 3. **Lift.** Movement starts a set automatically. The watch taps on every rep (a double tap means the rep was flagged, e.g. partial or rushed). After ~3 reps it shows its guess, e.g. *"Bicep Curl? 92%"*.
-   - Swipe left to **lock an exercise** (useful for machines like the leg press where your hands don't move).
-   - Swipe right for **End Set / End Workout**.
-4. Rest ~5 s and the set ends. Confirm or **correct the exercise and rep count**, add the weight, read the feedback. Every confirmation teaches the classifier your form.
+   - **Follow it on the iPhone** – after calibration the phone switches to the **live workout screen**, so you
+     don't have to turn your wrist mid-set: a 3-D model of your forearm moving in real time (green = forearm
+     and the hand's path, orange = the way your palm faces; switch between *3D / Side / Front*), the rep
+     count, the coaching cue, the top 3 exercise guesses, the rest timer, heart rate and the workout clock.
+     Tap a guess (or **Choose exercise**) to lock it; **End set**, **Discard** and **End workout** work from
+     the phone too. The chevron at the top tucks it away; a green banner on the Today tab brings it back.
+     The phone screen stays on while this screen is open.
+   - On the watch: swipe left to **lock an exercise** (useful for machines like the leg press where your hands don't move), swipe right for **End Set / End Workout**.
+4. Rest ~5 s and the set ends. Confirm or **correct the exercise and rep count**, add the weight, read the
+   feedback – on the phone (a *Set done* sheet pops up) or on the watch, whichever is handier. Every
+   confirmation teaches the classifier your form.
 5. End the workout. It syncs to the iPhone (History tab: range-of-motion, tempo and speed charts per rep) and to Apple Health.
+6. **Check what the watch saw**: open a set in History and play the **Arm motion replay** – the set rebuilt
+   from the sensors, with the current rep shown. If the replay doesn't look like what you did, the guess
+   can't be right either; that's the quickest way to tell a sensing problem from a classification one.
+   (Replays exist for sets recorded with *Save sensor data* on in the watch settings – the default.)
 
 ## 6. How the "AI" part works
 
@@ -201,3 +213,5 @@ screenshots are uploaded as the `ui-screenshots` artifact.
 - **Reps not counted**: make sure the set is rhythmic and the watch is snug. For fixed-hand machines, lock the exercise first (swipe left during the workout).
 - **Wrong exercise**: correct it in the set summary – it learns. Reset learning in watch Settings if it ever gets confused.
 - **Bundle identifier errors**: change `BUNDLE_ID_PREFIX` in `Config/Base.xcconfig`.
+- **Live screen says "Waiting for your watch"**: the live view needs the iPhone app open and the watch in
+  Bluetooth range. The workout keeps recording on the watch either way; reopen the app and it catches up.

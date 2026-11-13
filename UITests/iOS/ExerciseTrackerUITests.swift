@@ -60,6 +60,58 @@ final class ExerciseTrackerUITests: XCTestCase {
         snap(app, "ios-51-dashboard-start-on-watch")
     }
 
+    func testLiveWorkoutOnPhone() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live"]
+        app.launch()
+
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.staticTexts["Good rep"].exists)
+        sleep(2)  // let the arm animation run
+        snap(app, "ios-60-live-workout")
+
+        // Lock the exercise from the phone.
+        app.buttons["Choose exercise"].tap()
+        let hammer = app.buttons.matching(NSPredicate(format: "label CONTAINS 'Hammer Curl'")).firstMatch
+        XCTAssertTrue(hammer.waitForExistence(timeout: 5))
+        snap(app, "ios-61-choose-exercise")
+        hammer.tap()
+        XCTAssertTrue(app.buttons["Back to auto-detect"].waitForExistence(timeout: 5))
+        snap(app, "ios-62-exercise-locked")
+
+        // Tuck the workout away and bring it back from the dashboard.
+        app.buttons["Minimize"].tap()
+        let banner = app.buttons["liveWorkoutBanner"]
+        XCTAssertTrue(banner.waitForExistence(timeout: 5))
+        snap(app, "ios-63-dashboard-banner")
+        banner.tap()
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 5))
+
+        // End the workout from the phone.
+        app.swipeUp()
+        app.buttons["End workout"].tap()
+        let confirm = app.buttons["End Workout"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.tap()
+        XCTAssertTrue(app.staticTexts["Workout complete"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForNonExistence(timeout: 8))
+        XCTAssertTrue(app.buttons["Start workout on Apple Watch"].waitForExistence(timeout: 5))
+    }
+
+    func testSetReviewOnPhone() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "review"]
+        app.launch()
+
+        XCTAssertTrue(app.navigationBars["Set done"].waitForExistence(timeout: 15))
+        XCTAssertTrue(app.buttons["Save set"].exists)
+        snap(app, "ios-65-set-review")
+        app.buttons["Save set"].tap()
+        XCTAssertTrue(app.navigationBars["Set done"].waitForNonExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Rest"].waitForExistence(timeout: 5))
+        snap(app, "ios-66-resting")
+    }
+
     func testDemoWorkoutScreens() {
         let app = XCUIApplication()
         app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES"]
@@ -83,6 +135,11 @@ final class ExerciseTrackerUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Feedback"].waitForExistence(timeout: 5))
         snap(app, "ios-22-set-detail")
+        app.swipeUp()
+        let replay = app.staticTexts.matching(NSPredicate(format: "label ==[c] 'Arm motion replay'")).firstMatch
+        XCTAssertTrue(replay.waitForExistence(timeout: 5))
+        sleep(2)  // let the replay play a little
+        snap(app, "ios-26-set-replay")
         app.swipeUp()
         snap(app, "ios-23-set-charts")
         app.swipeUp()

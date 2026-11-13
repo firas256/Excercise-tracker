@@ -9,6 +9,7 @@ struct ExerciseTrackerApp: App {
     @StateObject private var connectivity: PhoneConnectivityService
     @StateObject private var health = HealthPermissionService()
     @AppStorage("onboardingComplete") private var onboardingComplete = false
+    @Environment(\.scenePhase) private var scenePhase
 
     init() {
         // `-resetOnboarding` (UI tests): start from the first-launch experience.
@@ -29,18 +30,38 @@ struct ExerciseTrackerApp: App {
                     OnboardingView { onboardingComplete = true }
                 }
             }
+            // Calibration steps and the live workout run on the watch but are followed here,
+            // so the user never has to turn their wrist mid-set.
             .fullScreenCover(isPresented: Binding(
-                get: { connectivity.liveCalibration != nil },
-                set: { if !$0 { connectivity.liveCalibration = nil } }
+                get: { connectivity.liveCalibration != nil || (connectivity.liveWorkout != nil && !connectivity.liveWorkoutMinimized) },
+                set: { shown in
+                    guard !shown else { return }
+                    if connectivity.liveCalibration != nil {
+                        connectivity.liveCalibration = nil
+                    } else {
+                        connectivity.liveWorkoutMinimized = true
+                    }
+                }
             )) {
-                CalibrationGuideView()
-                    .environmentObject(connectivity)
-                    .tint(.green)
+                Group {
+                    if connectivity.liveCalibration != nil {
+                        CalibrationGuideView()
+                    } else {
+                        LiveWorkoutView()
+                    }
+                }
+                .environmentObject(connectivity)
+                .environmentObject(store)
+                .tint(.green)
             }
             .environmentObject(store)
             .environmentObject(connectivity)
             .environmentObject(health)
             .tint(.green)
+            .onChange(of: scenePhase) { _, phase in
+                // Messages from the watch are missed while the app is in the background.
+                if phase == .active { connectivity.refreshLiveWorkout() }
+            }
         }
     }
 }

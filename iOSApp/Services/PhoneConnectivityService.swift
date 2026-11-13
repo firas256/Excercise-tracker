@@ -9,6 +9,19 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     @Published private(set) var isReachable = false
     /// Live calibration running on the watch (nil when none). Drives the full-screen guide.
     @Published var liveCalibration: CalibrationLiveState?
+    /// Live workout running on the watch (nil when none). Drives the full-screen workout screen.
+    @Published var liveWorkout: LiveWorkoutState?
+    /// The user tucked the live workout screen away (it comes back from the dashboard banner).
+    @Published var liveWorkoutMinimized = false
+    /// Recent arm-motion frames (last ~10 s) and when the latest batch arrived.
+    @Published private(set) var frames: [MotionFrame] = []
+    @Published private(set) var lastFrameArrival: Date?
+    @Published private(set) var lastLiveUpdate: Date?
+    private var demoTimer: Timer?
+    private var staleTimer: Timer?
+    private var demoFrames: [MotionFrame] = []
+    private var demoIndex = 0
+    private var demoOffset = 0.0
 
     private let store: WorkoutStore
 
@@ -20,6 +33,123 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         if UserDefaults.standard.bool(forKey: "demoCalibration") {
             liveCalibration = CalibrationLiveState(step: 1, pose: .armForward, phase: .holding(0.6))
         }
+        // `-demoLiveWorkout live|review`: show the live workout screen with simulated curls.
+        if let demo = UserDefaults.standard.string(forKey: "demoLiveWorkout") {
+            startDemo(review: demo == "review")
+        }
+        // The watch sends a heartbeat every ~5 s; if it has been silent for 2 minutes the
+        // workout ended out of range – stop showing it (it comes back if the watch reappears).
+        staleTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
+            guard let self, self.demoTimer == nil, self.liveWorkout != nil,
+                  Date().timeIntervalSince(self.lastLiveUpdate ?? .distantPast) > 120 else { return }
+            self.liveWorkout = nil
+            self.frames = []
+        }
+    }
+
+    /// Asks the watch for the current workout state (after the phone app comes back to the foreground).
+    func refreshLiveWorkout() {
+        send(.requestState)
+    }
+
+    /// Sends a button press to the watch.
+    func send(_ command: WatchCommand) {
+        if demoTimer != nil { applyDemo(command); return }
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated, WCSession.default.isReachable,
+              let data = PayloadCoding.encode(command) else { return }
+        WCSession.default.sendMessage([SyncKeys.command: data], replyHandler: nil, errorHandler: nil)
+    }
+
+    private func receive(_ state: LiveWorkoutState) {
+        if liveWorkout == nil || liveWorkout?.status == .ended { liveWorkoutMinimized = false }
+        liveWorkout = state
+        lastLiveUpdate = Date()
+        if state.status == .ended {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                if self.liveWorkout?.status == .ended {
+                    self.liveWorkout = nil
+                    self.frames = []
+                }
+            }
+        }
+    }
+
+    private func receive(_ newFrames: [MotionFrame]) {
+        guard let last = newFrames.last else { return }
+        if let previous = frames.last, last.t < previous.t - 1 { frames = [] }  // new session clock
+        frames.append(contentsOf: newFrames)
+        frames.removeAll { $0.t < last.t - 10 }
+        lastFrameArrival = Date()
+        lastLiveUpdate = Date()
+    }
+
+    // MARK: Demo (Simulator / screenshots)
+
+    private func startDemo(review: Bool) {
+        var o = SyntheticMotion.Options()
+        o.reps = 30
+        o.stillLead = 1
+        guard let samples = SyntheticMotion.generate(.bicepCurl, options: o) else { return }
+        let demoFrames = MotionFrameBuilder.frames(from: samples, outputRate: 15)
+        var state = LiveWorkoutState.idle
+        state.status = review ? .reviewing : .inSet
+        state.repCount = 6
+        state.liveCue = "Good rep"
+        state.candidates = [ExerciseCandidate(exercise: .bicepCurl, probability: 0.82),
+                            ExerciseCandidate(exercise: .hammerCurl, probability: 0.09),
+                            ExerciseCandidate(exercise: .lateralRaise, probability: 0.04)]
+        state.completedSets = 2
+        state.workoutStartedAt = Date().addingTimeInterval(-8 * 60)
+        state.heartRate = 124
+        state.activeEnergy = 46
+        if review {
+            let analysis = SetAnalyzer().analyze(Array(samples.prefix(1100)), lockedExercise: .bicepCurl)
+            state.pendingSet = PendingSetSummary(id: UUID(), exercise: .bicepCurl, candidates: state.candidates,
+                                                 repCount: analysis.repCount, feedback: analysis.feedback,
+                                                 weight: 12.5, weightUnit: "kg")
+        }
+        liveWorkout = state
+        lastLiveUpdate = Date()
+        self.demoFrames = demoFrames
+        demoTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
+            DispatchQueue.main.async { self?.pumpDemoFrames() }
+        }
+    }
+
+    private func pumpDemoFrames() {
+        guard !demoFrames.isEmpty else { return }
+        let start = demoFrames[0].t
+        var batch: [MotionFrame] = []
+        for _ in 0..<3 {
+            var f = demoFrames[demoIndex]
+            f.t = f.t - start + demoOffset
+            batch.append(f)
+            demoIndex += 1
+            if demoIndex == demoFrames.count {
+                demoIndex = 0
+                demoOffset += (demoFrames.last?.t ?? 0) - start + 1.0 / 15
+            }
+        }
+        receive(batch)
+    }
+
+    private func applyDemo(_ command: WatchCommand) {
+        guard var state = liveWorkout else { return }
+        switch command {
+        case .lockExercise(let e): state.lockedExercise = e
+        case .savePendingSet, .discardPendingSet:
+            state.pendingSet = nil
+            state.status = .waitingForSet
+            state.restStartedAt = Date()
+        case .endWorkout:
+            state.status = .ended
+            demoTimer?.invalidate()
+            demoTimer = nil
+        case .endSet:
+            state.status = .reviewing
+        default: break
+        }
+        receive(state)
     }
 
     func activate() {
@@ -63,7 +193,12 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
 
     func sessionWatchStateDidChange(_ session: WCSession) { refreshState(session) }
 
-    func sessionReachabilityDidChange(_ session: WCSession) { refreshState(session) }
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        refreshState(session)
+        if session.isReachable {
+            DispatchQueue.main.async { self.refreshLiveWorkout() }
+        }
+    }
 
     func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
         if let data = userInfo[SyncKeys.workout] as? Data,
@@ -73,6 +208,16 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        if let data = message[SyncKeys.liveWorkout] as? Data,
+           let state = PayloadCoding.decode(LiveWorkoutState.self, from: data) {
+            DispatchQueue.main.async { self.receive(state) }
+            return
+        }
+        if let data = message[SyncKeys.motionFrames] as? Data,
+           let frames = PayloadCoding.decode([MotionFrame].self, from: data) {
+            DispatchQueue.main.async { self.receive(frames) }
+            return
+        }
         guard let data = message[SyncKeys.calibrationLive] as? Data,
               let state = PayloadCoding.decode(CalibrationLiveState.self, from: data) else { return }
         DispatchQueue.main.async {

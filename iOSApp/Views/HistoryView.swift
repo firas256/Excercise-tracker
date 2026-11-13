@@ -158,6 +158,16 @@ struct SetDetailView: View {
                     ForEach(set.feedback.tips, id: \.self) { FeedbackTipRow(tip: $0) }
                 }
 
+                if let url = store.recordingURL(setID: set.id) {
+                    Section {
+                        MotionReplayView(recording: url, reps: set.reps)
+                    } header: {
+                        Text("Arm motion replay")
+                    } footer: {
+                        Text("Rebuilt from the watch's sensors. Check it matches what you did. Green: forearm and the hand's path. Orange: the way your palm faces.")
+                    }
+                }
+
                 if !set.reps.isEmpty {
                     Section("Range of motion per rep") {
                         Chart(set.reps) { r in

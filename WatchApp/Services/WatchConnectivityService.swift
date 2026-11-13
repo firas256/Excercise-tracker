@@ -25,6 +25,23 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
     /// True when the iPhone app can receive live messages right now.
     var isPhoneReachable: Bool { isActivated && WCSession.default.isReachable }
 
+    /// Buttons pressed on the iPhone during a workout.
+    var onCommand: ((WatchCommand) -> Void)?
+
+    /// Returns false when the phone couldn't be reached (so the caller sends it again later).
+    @discardableResult
+    func sendLiveWorkout(_ state: LiveWorkoutState) -> Bool {
+        guard isPhoneReachable, let data = PayloadCoding.encode(state) else { return false }
+        WCSession.default.sendMessage([SyncKeys.liveWorkout: data], replyHandler: nil, errorHandler: nil)
+        return true
+    }
+
+    /// Arm-motion frames for the phone's 3-D view. Safe to call from any queue.
+    func sendFrames(_ frames: [MotionFrame]) {
+        guard isPhoneReachable, let data = PayloadCoding.encode(frames) else { return }
+        WCSession.default.sendMessage([SyncKeys.motionFrames: data], replyHandler: nil, errorHandler: nil)
+    }
+
     /// Streams live calibration progress to the iPhone (best effort: dropped if not reachable).
     func sendLive(_ state: CalibrationLiveState) {
         guard isPhoneReachable, let data = PayloadCoding.encode(state) else { return }
@@ -92,6 +109,12 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
         if activationState == .activated {
             DispatchQueue.main.async { self.flush() }
         }
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard let data = message[SyncKeys.command] as? Data,
+              let command = PayloadCoding.decode(WatchCommand.self, from: data) else { return }
+        DispatchQueue.main.async { self.onCommand?(command) }
     }
 
     func session(_ session: WCSession, didFinish fileTransfer: WCSessionFileTransfer, error: Error?) {

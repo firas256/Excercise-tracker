@@ -3,7 +3,8 @@ import Foundation
 /// Builds a realistic demo workout by running the real analysis pipeline on simulated motion,
 /// so the app can be explored before the first watch workout (or in the Simulator).
 enum DemoData {
-    static func makeWorkout(daysAgo: Int = 1) -> WorkoutRecord {
+    /// `recording` receives each set's raw samples (used to give demo sets a motion replay).
+    static func makeWorkout(daysAgo: Int = 1, recording: ((UUID, ExerciseType, [ArmSample]) -> Void)? = nil) -> WorkoutRecord {
         let start = Calendar.current.date(byAdding: .day, value: -daysAgo, to: Date()) ?? Date()
         var t = start
         var sets: [SetRecord] = []
@@ -16,8 +17,10 @@ enum DemoData {
             let analysis = SetAnalyzer().analyze(samples)
             let known = SetAnalyzer().analyze(samples, lockedExercise: exercise)
             let duration = SyntheticMotion.duration(options)
+            let id = UUID()
+            recording?(id, exercise, samples)
             sets.append(SetRecord(
-                id: UUID(),
+                id: id,
                 exercise: exercise,
                 detectedExercise: analysis.candidates.first?.exercise,
                 detectionConfidence: analysis.confidence,
