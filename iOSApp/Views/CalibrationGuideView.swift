@@ -125,8 +125,13 @@ struct CalibrationGuideView: View {
 
 /// Speaks the instructions so you don't have to look at any screen.
 final class GuideSpeaker: ObservableObject {
-    @Published var isMuted = false {
-        didSet { if isMuted { stop() } }
+    private static let mutedKey = "guideSpeechMuted"
+    /// Remembered between calibrations (the speaker button on the guide).
+    @Published var isMuted = UserDefaults.standard.bool(forKey: GuideSpeaker.mutedKey) {
+        didSet {
+            UserDefaults.standard.set(isMuted, forKey: Self.mutedKey)
+            if isMuted { stop() }
+        }
     }
     private let synthesizer = AVSpeechSynthesizer()
 

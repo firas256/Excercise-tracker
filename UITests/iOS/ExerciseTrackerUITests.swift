@@ -49,12 +49,13 @@ final class ExerciseTrackerUITests: XCTestCase {
 
     func testCalibrationGuide() {
         let app = XCUIApplication()
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES"]
         app.launch()
         XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
         XCTAssertTrue(app.staticTexts["Calibrating on Apple Watch"].exists)
         snap(app, "ios-50-calibration-guide")
         app.buttons["Close"].tap()
+        XCTAssertTrue(app.staticTexts["Calibrating on Apple Watch"].waitForNonExistence(timeout: 5))
         XCTAssertTrue(app.buttons["Start workout on Apple Watch"].waitForExistence(timeout: 5))
         snap(app, "ios-51-dashboard-start-on-watch")
     }
