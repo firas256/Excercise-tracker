@@ -96,7 +96,7 @@ Microsoft Research's RecoFit dataset, and you **don't need to record training da
 1. **Neural network (Core ML, on the watch).** A small 1-D CNN looks at 5-second windows of calibrated arm
    motion. It was trained on 94 people doing 20 exercises (curls, presses, raises, rows, squats, lunges,
    triceps work, push-ups, dips, kettlebell swings, sit-ups, burpees…) plus "not an exercise" (walking,
-   cardio, stretching). On people it never saw during training it gets about **86–88 % of sets** right.
+   cardio, stretching). On people it never saw during training it gets **88 % of exercise sets** right.
    The data was converted into the app's arm frame and augmented for left/right arm, strap position,
    grip, tempo and wrist placement – details in [`ML/README.md`](ML/README.md).
 2. **Personal classifier that learns from you.** Each set is also summarised by 14 orientation-independent

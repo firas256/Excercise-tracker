@@ -19,10 +19,12 @@ goblet squat, lunge, overhead triceps extension, skull crusher, kettlebell swing
 push-up, dip, triceps kickback, reverse fly, sit-up/crunch, Russian twist, burpee, jumping jacks.
 Other exercises in the app are recognised by the personal classifier only.
 
-**Evaluation** (people the model never saw during training, 18 of 94): about 86–88 % of exercise sets
-correct and ~95 % of non-exercise recordings rejected as `other`. Weakest pairs: bench press vs.
-shoulder press, squat vs. goblet squat, lateral raise vs. reverse fly – they move the wrist almost
-identically. Real accuracy on *your* watch is unknown until you try it; the personal classifier
+**Evaluation** on people the model never saw during training (18 of 94): **88 %** of exercise sets
+correct, 92 % of non-exercise recordings rejected as `other`. 100 %: burpee, dip, jumping jacks,
+kettlebell swing, overhead triceps extension, Russian twist, sit-up, triceps kickback; 86–94 %: bicep
+curl, shoulder press, lunge, goblet squat, lat pulldown, squat; weakest: bent-over row (47 %), lateral
+raise (57 %, confused with reverse fly), bench press (75 %, confused with shoulder press), push-up (77 %).
+Those pairs move the wrist almost identically. Real accuracy on *your* watch is unknown until you try it; the personal classifier
 takes over more as you confirm sets.
 
 ## How the data was made to look like the watch
