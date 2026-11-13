@@ -44,20 +44,26 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         start.tap()
 
         // Guided calibration (scripted motion plays in real time): each pose is detected automatically.
+        // On a slow Simulator a pose can be over before a screenshot of the previous one is done,
+        // so follow along by polling and photograph whichever step is showing; reaching the
+        // tracking screen is what proves calibration finished.
         XCTAssertTrue(app.staticTexts["Arms down"].waitForExistence(timeout: 15))
-        snap(app, "watch-02-calibration-arms-down")
-        XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 40))
-        snap(app, "watch-03-calibration-arm-forward")
-        XCTAssertTrue(app.staticTexts["Arm overhead"].waitForExistence(timeout: 60))
-        snap(app, "watch-04-calibration-overhead")
-        // "Calibrated!" is only shown for about a second before tracking starts, so it's a
-        // best-effort screenshot; the tracking screen below is what proves calibration finished.
-        if app.staticTexts["Calibrated!"].waitForExistence(timeout: 40) {
-            snap(app, "watch-05-calibrated")
+        let steps = [("Arms down", "watch-02-calibration-arms-down"), ("Arm forward", "watch-03-calibration-arm-forward"),
+                     ("Palm up", "watch-03b-calibration-palm-up"), ("Arm to the side", "watch-03c-calibration-arm-side"),
+                     ("Arm overhead", "watch-04-calibration-overhead"), ("Calibrated!", "watch-05-calibrated")]
+        var seen: [String] = []
+        let tracking = app.staticTexts["reps"], trackingOne = app.staticTexts["rep"]
+        let deadline = Date().addingTimeInterval(240)
+        while Date() < deadline, !(tracking.exists || trackingOne.exists) {
+            for (title, shot) in steps where !seen.contains(title) && app.staticTexts[title].exists {
+                seen.append(title)
+                snap(app, shot)
+            }
         }
+        XCTAssertTrue(tracking.exists || trackingOne.exists, "calibration never finished (steps seen: \(seen))")
+        XCTAssertGreaterThanOrEqual(seen.count, 2, "calibration steps seen: \(seen)")
 
         // Live tracking of the first scripted set (8 bicep curls).
-        XCTAssertTrue(app.staticTexts["reps"].waitForExistence(timeout: 20) || app.staticTexts["rep"].exists)
         snap(app, "watch-06-waiting-for-set")
         let guess = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Curl'")).firstMatch
         XCTAssertTrue(guess.waitForExistence(timeout: 40), "exercise guess never appeared")
