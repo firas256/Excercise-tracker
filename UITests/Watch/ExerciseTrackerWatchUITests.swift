@@ -47,7 +47,7 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         // On a slow Simulator a pose can be over before a screenshot of the previous one is done,
         // so follow along by polling and photograph whichever step is showing; reaching the
         // tracking screen is what proves calibration finished.
-        XCTAssertTrue(app.staticTexts["Arms down"].waitForExistence(timeout: 15))
+        // (The first step is polled too: on a slow Simulator it can be over before the first look.)
         let steps = [("Arms down", "watch-02-calibration-arms-down"), ("Arm forward", "watch-03-calibration-arm-forward"),
                      ("Palm up", "watch-03b-calibration-palm-up"), ("Arm to the side", "watch-03c-calibration-arm-side"),
                      ("Arm overhead", "watch-04-calibration-overhead"), ("Calibrated!", "watch-05-calibrated")]
