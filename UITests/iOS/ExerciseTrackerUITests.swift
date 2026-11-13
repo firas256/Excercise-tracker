@@ -21,6 +21,16 @@ final class ExerciseTrackerUITests: XCTestCase {
         add(attachment)
     }
 
+    /// Swipes to the next page until `text` shows (a swipe on a busy Simulator sometimes doesn't turn the page).
+    private func swipe(_ app: XCUIApplication, untilShowing text: String) -> Bool {
+        for _ in 0..<3 {
+            if app.staticTexts[text].exists { return true }
+            app.swipeLeft()
+            if app.staticTexts[text].waitForExistence(timeout: 6) { return true }
+        }
+        return false
+    }
+
     private func openTab(_ app: XCUIApplication, _ name: String) {
         let tabButton = app.tabBars.buttons[name]
         if tabButton.waitForExistence(timeout: 3) {
@@ -38,12 +48,10 @@ final class ExerciseTrackerUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Rep Coach"].waitForExistence(timeout: 15))
         snap(app, "ios-01-welcome")
 
-        app.swipeLeft()
-        XCTAssertTrue(app.staticTexts["How it works"].waitForExistence(timeout: 5))
+        XCTAssertTrue(swipe(app, untilShowing: "How it works"))
         snap(app, "ios-02-how-it-works")
 
-        app.swipeLeft()
-        XCTAssertTrue(app.staticTexts["Permissions"].waitForExistence(timeout: 5))
+        XCTAssertTrue(swipe(app, untilShowing: "Permissions"))
         snap(app, "ios-03-permissions")
 
         let getStarted = app.buttons["Get Started"]
