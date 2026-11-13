@@ -47,6 +47,10 @@ struct CalibrationGuideView: View {
             }
             .foregroundStyle(.secondary)
 
+            if let issue = state.backgroundIssue {
+                WatchBackgroundIssueBanner(issue: issue)
+            }
+
             stepDots(state)
 
             if state.status == .finished {

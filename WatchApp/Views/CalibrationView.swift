@@ -12,6 +12,7 @@ struct CalibrationView: View {
         ScrollView {
             VStack(spacing: 6) {
                 stepDots
+                BackgroundIssueBadge()
                 if finished {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 44))

@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import WatchKit
 
@@ -13,6 +14,17 @@ final class CalibrationViewModel: ObservableObject {
     @Published private(set) var phoneIsShowingInstructions = false
 
     var onFinish: ((CalibrationProfile) -> Void)?
+
+    /// The workout session that keeps haptics and phone updates going with the wrist down; its
+    /// problems (if any) are passed on to the phone.
+    weak var session: WorkoutSessionService? {
+        didSet {
+            issueObserver = session?.$backgroundIssue.removeDuplicates().dropFirst().sink { [weak self] _ in
+                DispatchQueue.main.async { self?.resendToPhone() }
+            }
+        }
+    }
+    private var issueObserver: AnyCancellable?
 
     private let motion: MotionService
     private var engine = CalibrationEngine()
@@ -115,10 +127,24 @@ final class CalibrationViewModel: ObservableObject {
             }
         }
         // Mirror to the iPhone.
-        let live = CalibrationLiveState(step: step, pose: pose, phase: phase)
-        if CalibrationLiveState.isWorthSending(live, after: lastSentState) {
+        let live = currentLiveState
+        if CalibrationLiveState.isWorthSending(live, after: lastSentState),
+           WatchConnectivityService.shared.sendLive(live) {
             lastSentState = live
-            WatchConnectivityService.shared.sendLive(live)
         }
+    }
+
+    private var currentLiveState: CalibrationLiveState {
+        var live = CalibrationLiveState(step: stepIndex, pose: pose, phase: phase)
+        live.backgroundIssue = session?.backgroundIssue
+        return live
+    }
+
+    /// Sends the current step again (the phone reconnected, or the background status changed).
+    func resendToPhone() {
+        guard isRunning else { return }
+        phoneIsShowingInstructions = WatchConnectivityService.shared.isPhoneReachable
+        let live = currentLiveState
+        if WatchConnectivityService.shared.sendLive(live) { lastSentState = live }
     }
 }

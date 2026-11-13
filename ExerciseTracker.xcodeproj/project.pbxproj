@@ -288,6 +288,10 @@
 			isa = PBXBuildFile;
 			fileRef = A639767CDA2974FAA4A6CECF;
 		};
+		E1A69E673F0A1B50491E33ED = {
+			isa = PBXBuildFile;
+			fileRef = 78DB6E70D63E22D9824A0416;
+		};
 		E467C3105D0A3ADB7D9D32D4 = {
 			isa = PBXBuildFile;
 			fileRef = 1478ED0B0FB99AF38EA8C3B7;
@@ -554,6 +558,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = WorkoutSessionService.swift;
+			sourceTree = "<group>";
+		};
+		78DB6E70D63E22D9824A0416 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = BackgroundIssueBadge.swift;
 			sourceTree = "<group>";
 		};
 		7BD4E88912718F7B1BF6022D = {
@@ -973,6 +983,7 @@
 		B189CB0CF34BC6840EE789AF = {
 			isa = PBXGroup;
 			children = (
+				78DB6E70D63E22D9824A0416,
 				CBE8546071AEE57989E25997,
 				6B20A9483B40F74F093E5D09,
 				A89C8E666E2530F08B3D70EF,
@@ -1276,6 +1287,7 @@
 				3D386DAED47691CD69181B76,
 				5B5BB7A90DAD4A9F7EFBFD0C,
 				9B063EFCCF3E2C82E1B4AD89,
+				E1A69E673F0A1B50491E33ED,
 				AB4E60D4C6ADAA02819A05B9,
 				04582BC32784D75A4D28E275,
 				459649AD72F2F9F797C7AAB7,

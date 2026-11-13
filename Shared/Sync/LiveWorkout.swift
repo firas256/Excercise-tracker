@@ -23,6 +23,8 @@ struct LiveWorkoutState: Codable, Equatable, Sendable {
     var activeEnergy: Double
     /// A finished set waiting to be confirmed (on the phone or the watch).
     var pendingSet: PendingSetSummary?
+    /// Why the watch will stop tapping and updating the phone while the wrist is down (nil = fine).
+    var backgroundIssue: String? = nil
 
     static let idle = LiveWorkoutState(status: .waitingForSet, repCount: 0, liveCue: nil, lastRepFlagged: false,
                                        candidates: [], lockedExercise: nil, completedSets: 0, restStartedAt: nil,
@@ -56,6 +58,20 @@ extension SyncKeys {
     static let liveWorkout = "liveWorkout"
     static let motionFrames = "motionFrames"
     static let command = "command"
+    /// Seconds since 1970 when a live payload was sent (orders live messages vs queued transfers).
+    static let sentAt = "sentAt"
+}
+
+extension WatchCommand {
+    /// How old a command may be when it arrives through the queued (non-live) path and still be
+    /// carried out. Commands about a specific set are checked by id, so they can wait longer.
+    var maxQueuedAge: TimeInterval {
+        switch self {
+        case .savePendingSet, .discardPendingSet, .lockExercise, .requestState: return 300
+        case .endWorkout: return 1800
+        case .endSet, .discardSet: return 20
+        }
+    }
 }
 
 /// One frame of arm motion for the 3-D view: forearm direction (elevation + heading), palm roll

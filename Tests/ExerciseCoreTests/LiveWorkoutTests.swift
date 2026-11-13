@@ -23,6 +23,34 @@ final class LiveWorkoutTests: XCTestCase {
         XCTAssertEqual(state.currentGuess, .bicepCurl)
     }
 
+    func testBackgroundIssueTravelsAndIsOptional() throws {
+        var state = LiveWorkoutState.idle
+        state.backgroundIssue = "Health access for workouts is off."
+        let data = try XCTUnwrap(PayloadCoding.encode(state))
+        XCTAssertEqual(PayloadCoding.decode(LiveWorkoutState.self, from: data)?.backgroundIssue, state.backgroundIssue)
+
+        // A state without the field (older watch app) still decodes.
+        var json = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+        json.removeValue(forKey: "backgroundIssue")
+        let old = try JSONSerialization.data(withJSONObject: json)
+        XCTAssertNil(try XCTUnwrap(PayloadCoding.decode(LiveWorkoutState.self, from: old)).backgroundIssue)
+
+        // Calibration: a change in the problem alone is worth telling the phone about.
+        let a = CalibrationLiveState(step: 1, pose: .armForward, phase: .waitingForStillness)
+        var b = a
+        b.backgroundIssue = "No HealthKit"
+        XCTAssertFalse(CalibrationLiveState.isWorthSending(a, after: a))
+        XCTAssertTrue(CalibrationLiveState.isWorthSending(b, after: a))
+    }
+
+    func testQueuedCommandsExpireByMeaning() {
+        // "End set" is only meaningful right away; confirming a specific set can wait.
+        XCTAssertLessThanOrEqual(WatchCommand.endSet.maxQueuedAge, 30)
+        XCTAssertLessThanOrEqual(WatchCommand.discardSet.maxQueuedAge, 30)
+        XCTAssertGreaterThanOrEqual(WatchCommand.savePendingSet(id: UUID(), exercise: nil, reps: 8, weight: nil).maxQueuedAge, 120)
+        XCTAssertGreaterThan(WatchCommand.endWorkout.maxQueuedAge, WatchCommand.endSet.maxQueuedAge)
+    }
+
     func testFramesFollowACurl() throws {
         var o = SyntheticMotion.Options()
         o.reps = 4

@@ -52,12 +52,67 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         send(.requestState)
     }
 
-    /// Sends a button press to the watch.
+    /// Sends a button press to the watch: live when it's reachable, otherwise (or if that fails)
+    /// queued for delivery, time-stamped so the watch can drop it if it arrives too late to mean
+    /// the same thing (see `WatchCommand.maxQueuedAge`).
     func send(_ command: WatchCommand) {
         if demoTimer != nil { applyDemo(command); return }
-        guard WCSession.isSupported(), WCSession.default.activationState == .activated, WCSession.default.isReachable,
+        guard WCSession.isSupported(), WCSession.default.activationState == .activated,
               let data = PayloadCoding.encode(command) else { return }
-        WCSession.default.sendMessage([SyncKeys.command: data], replyHandler: nil, errorHandler: nil)
+        let payload: [String: Any] = [SyncKeys.command: data, SyncKeys.sentAt: Date().timeIntervalSince1970]
+        if WCSession.default.isReachable {
+            WCSession.default.sendMessage(payload, replyHandler: nil) { _ in
+                if command != .requestState { WCSession.default.transferUserInfo(payload) }
+            }
+        } else if command != .requestState {
+            WCSession.default.transferUserInfo(payload)
+        }
+    }
+
+    /// Newest `sentAt` accepted per live key, so a late queued update never replaces a newer one.
+    private var latestAccepted: [String: Double] = [:]
+
+    /// Live calibration / workout updates, from a live message or a queued transfer. Main thread.
+    private func handleLive(_ payload: [String: Any], queued: Bool) {
+        let stamp = payload[SyncKeys.sentAt] as? Double
+        func isCurrent(_ key: String) -> Bool {
+            guard let stamp else { return true }
+            if stamp < latestAccepted[key] ?? 0 { return false }
+            // A queued update that took ages is history (e.g. the app was closed meanwhile).
+            if queued, Date().timeIntervalSince1970 - stamp > 60 { return false }
+            latestAccepted[key] = stamp
+            return true
+        }
+        if let data = payload[SyncKeys.liveWorkout] as? Data,
+           let state = PayloadCoding.decode(LiveWorkoutState.self, from: data) {
+            if isCurrent(SyncKeys.liveWorkout) { receive(state) }
+            return
+        }
+        if let data = payload[SyncKeys.motionFrames] as? Data,
+           let frames = PayloadCoding.decode([MotionFrame].self, from: data) {
+            receive(frames)
+            return
+        }
+        if let data = payload[SyncKeys.calibrationLive] as? Data,
+           let state = PayloadCoding.decode(CalibrationLiveState.self, from: data),
+           isCurrent(SyncKeys.calibrationLive) {
+            receive(state)
+        }
+    }
+
+    private func receive(_ state: CalibrationLiveState) {
+        switch state.status {
+        case .cancelled:
+            liveCalibration = nil
+        case .finished:
+            liveCalibration = state
+            // Leave "Calibrated!" up for a moment, then get out of the way.
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                if self.liveCalibration?.status == .finished { self.liveCalibration = nil }
+            }
+        default:
+            liveCalibration = state
+        }
     }
 
     private func receive(_ state: LiveWorkoutState) {
@@ -204,36 +259,14 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         if let data = userInfo[SyncKeys.workout] as? Data,
            let workout = PayloadCoding.decode(WorkoutRecord.self, from: data) {
             DispatchQueue.main.async { self.store.add(workout) }
+            return
         }
+        // Live updates the watch queued while it couldn't message the phone directly.
+        DispatchQueue.main.async { self.handleLive(userInfo, queued: true) }
     }
 
     func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
-        if let data = message[SyncKeys.liveWorkout] as? Data,
-           let state = PayloadCoding.decode(LiveWorkoutState.self, from: data) {
-            DispatchQueue.main.async { self.receive(state) }
-            return
-        }
-        if let data = message[SyncKeys.motionFrames] as? Data,
-           let frames = PayloadCoding.decode([MotionFrame].self, from: data) {
-            DispatchQueue.main.async { self.receive(frames) }
-            return
-        }
-        guard let data = message[SyncKeys.calibrationLive] as? Data,
-              let state = PayloadCoding.decode(CalibrationLiveState.self, from: data) else { return }
-        DispatchQueue.main.async {
-            switch state.status {
-            case .cancelled:
-                self.liveCalibration = nil
-            case .finished:
-                self.liveCalibration = state
-                // Leave "Calibrated!" up for a moment, then get out of the way.
-                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                    if self.liveCalibration?.status == .finished { self.liveCalibration = nil }
-                }
-            default:
-                self.liveCalibration = state
-            }
-        }
+        DispatchQueue.main.async { self.handleLive(message, queued: false) }
     }
 
     func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String: Any]) {

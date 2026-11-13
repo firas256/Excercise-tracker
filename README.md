@@ -58,8 +58,10 @@ to pick it there (picking it in Xcode edits the shared project file, which makes
 
 > **Free Apple ID and HealthKit:** if signing fails with a HealthKit/provisioning error, remove the
 > **HealthKit** capability from *both* targets (Signing & Capabilities → click the ✕ next to HealthKit).
-> The app keeps working: it switches to an extended-runtime session to keep the sensors on, it just
-> won't record heart rate, save to the Health app, or start the watch workout from the iPhone.
+> The app still counts reps, but watchOS only lets a watch app tap your wrist and message the iPhone
+> *with the wrist down* while a HealthKit workout session runs – so without HealthKit the taps and the
+> live view on the phone pause whenever the watch screen sleeps (they catch up when you raise your
+> wrist). It also won't record heart rate, save to Health, or start the watch workout from the iPhone.
 
 ### Updating to a new version
 
@@ -209,5 +211,10 @@ screenshots are uploaded as the `ui-screenshots` artifact.
 - **Reps not counted**: make sure the set is rhythmic and the watch is snug. For fixed-hand machines, lock the exercise first (swipe left during the workout).
 - **Wrong exercise**: correct it in the set summary – it learns. Reset learning in watch Settings if it ever gets confused.
 - **Bundle identifier errors**: change `BUNDLE_ID_PREFIX` in `Config/Base.xcconfig`.
+- **No taps / the phone falls behind when your wrist is down** (the watch screen goes to sleep during the
+  poses): watchOS only allows that while a HealthKit workout session is running. The watch and phone
+  show an orange *"pauses when your wrist is down"* warning with the reason when it isn't. Usually Health
+  access for Workouts is off – turn it on in iPhone **Settings › Privacy & Security › Health › Rep Coach**,
+  then start again. Updates the phone missed are delivered as soon as the watch can send them.
 - **Live screen says "Waiting for your watch"**: the live view needs the iPhone app open and the watch in
   Bluetooth range. The workout keeps recording on the watch either way; reopen the app and it catches up.

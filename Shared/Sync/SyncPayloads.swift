@@ -30,6 +30,8 @@ struct CalibrationLiveState: Codable, Equatable, Sendable {
     var progress: Double
     /// Correction shown when `status == .wrongPose`.
     var message: String?
+    /// Why the watch will stop tapping and updating the phone while the wrist is down (nil = fine).
+    var backgroundIssue: String?
 
     init(step: Int, pose: CalibrationPose, phase: CalibrationPhase) {
         self.step = step
@@ -37,6 +39,7 @@ struct CalibrationLiveState: Codable, Equatable, Sendable {
         self.pose = pose
         self.progress = 0
         self.message = nil
+        self.backgroundIssue = nil
         switch phase {
         case .waitingForMovement: status = .moveIntoPosition
         case .waitingForStillness: status = .holdStill
@@ -61,7 +64,8 @@ struct CalibrationLiveState: Codable, Equatable, Sendable {
     /// True when the phone should be told about `new` (status/step change, or a hold-progress quarter).
     static func isWorthSending(_ new: CalibrationLiveState, after old: CalibrationLiveState?) -> Bool {
         guard let old else { return true }
-        if old.status != new.status || old.step != new.step || old.message != new.message { return true }
+        if old.status != new.status || old.step != new.step || old.message != new.message
+            || old.backgroundIssue != new.backgroundIssue { return true }
         return (new.progress * 4).rounded(.down) != (old.progress * 4).rounded(.down)
     }
 }

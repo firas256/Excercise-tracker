@@ -100,3 +100,24 @@ extension TimeInterval {
         return String(format: "%d:%02d", total / 60, total % 60)
     }
 }
+
+/// The watch couldn't start a workout session, so with the wrist down it can't tap or send live
+/// updates (watchOS only allows that during a running workout session). Explains why and how to fix.
+struct WatchBackgroundIssueBanner: View {
+    let issue: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Label("Your watch pauses when your wrist is down", systemImage: "exclamationmark.triangle.fill")
+                .font(.subheadline.bold())
+            Text("No taps and no live updates here until you raise your wrist – the watch keeps recording. \(issue)")
+                .font(.caption)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .foregroundStyle(.orange)
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .accessibilityElement(children: .combine)
+    }
+}

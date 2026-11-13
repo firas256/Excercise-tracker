@@ -59,6 +59,7 @@ struct LiveSetView: View {
                     .foregroundStyle(.secondary)
             }
             .font(.caption2)
+            BackgroundIssueBadge(compact: true)
         }
     }
 

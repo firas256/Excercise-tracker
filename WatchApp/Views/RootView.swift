@@ -33,7 +33,7 @@ struct OnboardingView: View {
                     .font(.title3.bold())
                 Text("Counts your reps, guesses the exercise and coaches your range and tempo using the watch's motion sensors.")
                     .font(.footnote)
-                Label("Health: workouts, heart rate & calories – keeps tracking while your wrist is down.", systemImage: "heart.fill")
+                Label("Health: workouts, heart rate & calories – lets the watch keep tapping you and updating your iPhone while your wrist is down.", systemImage: "heart.fill")
                     .font(.footnote)
                 Label("Motion sensors: accelerometer & gyroscope, processed on your watch.", systemImage: "gyroscope")
                     .font(.footnote)

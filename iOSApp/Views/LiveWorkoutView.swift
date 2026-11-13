@@ -44,6 +44,9 @@ struct LiveWorkoutView: View {
         ScrollView {
             VStack(spacing: 14) {
                 header(state)
+                if let issue = state.backgroundIssue {
+                    WatchBackgroundIssueBanner(issue: issue)
+                }
                 TimelineView(.periodic(from: .now, by: 2)) { context in
                     if isStale(at: context.date) {
                         Label("Waiting for your watch – keep it nearby.", systemImage: "antenna.radiowaves.left.and.right.slash")

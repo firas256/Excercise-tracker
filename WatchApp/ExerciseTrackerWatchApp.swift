@@ -53,12 +53,17 @@ final class WatchAppModel: ObservableObject {
     let session = WorkoutSessionService()
     let workout: WorkoutViewModel
     let calibrationModel = CalibrationViewModel()
+    /// A calibration started on its own (not as part of a workout) runs its own workout session –
+    /// only a running workout session lets the watch tap and update the phone with the wrist down,
+    /// and the poses all turn the screen away. It is discarded afterwards, never saved.
+    private var calibrationOwnsSession = false
 
     init() {
         WatchSettings.registerDefaults()
         workout = WorkoutViewModel(store: store)
         calibration = store.calibration
         workout.session = session
+        calibrationModel.session = session
         screen = UserDefaults.standard.bool(forKey: WatchSettings.onboardedKey) ? .home : .onboarding
         WatchConnectivityService.shared.activate()
         workout.onEndWorkoutRequested = { [weak self] in
@@ -66,6 +71,12 @@ final class WatchAppModel: ObservableObject {
         }
         WatchConnectivityService.shared.onCommand = { [weak self] command in
             self?.workout.handle(command)
+        }
+        // Back in touch with the phone (e.g. wrist raised again): bring it up to date right away.
+        WatchConnectivityService.shared.onReachabilityChange = { [weak self] reachable in
+            guard let self, reachable else { return }
+            self.calibrationModel.resendToPhone()
+            self.workout.handle(.requestState)
         }
     }
 
@@ -98,6 +109,7 @@ final class WatchAppModel: ObservableObject {
     }
 
     func startWorkout() {
+        calibrationOwnsSession = false  // a calibration's session that's still winding down carries on
         session.start()
         if WatchSettings.calibrateEveryWorkout || calibration == nil {
             beginCalibration(startsWorkout: true)
@@ -107,6 +119,10 @@ final class WatchAppModel: ObservableObject {
     }
 
     func beginCalibration(startsWorkout: Bool) {
+        if !startsWorkout, !session.isActive {
+            session.start()
+            calibrationOwnsSession = true
+        }
         screen = .calibration(startsWorkout: startsWorkout)
         calibrationModel.onFinish = { [weak self] profile in
             guard let self else { return }
@@ -117,9 +133,17 @@ final class WatchAppModel: ObservableObject {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { self.beginTracking() }
             } else {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { self.screen = .home }
+                // After the "calibrated" tap has played.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { self.endCalibrationSession() }
             }
         }
         calibrationModel.start()
+    }
+
+    private func endCalibrationSession() {
+        guard calibrationOwnsSession else { return }
+        calibrationOwnsSession = false
+        session.end(save: false) {}
     }
 
     /// Skip calibration and reuse the previous profile (or the default one).
@@ -128,6 +152,7 @@ final class WatchAppModel: ObservableObject {
         if case .calibration(let startsWorkout) = screen, startsWorkout {
             beginTracking()
         } else {
+            endCalibrationSession()
             screen = .home
         }
     }
@@ -137,6 +162,7 @@ final class WatchAppModel: ObservableObject {
         if case .calibration(let startsWorkout) = screen, startsWorkout {
             session.end(save: false) {}
         }
+        endCalibrationSession()
         screen = .home
     }
 

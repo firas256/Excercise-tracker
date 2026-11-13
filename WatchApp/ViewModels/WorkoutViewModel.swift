@@ -175,6 +175,7 @@ final class WorkoutViewModel: ObservableObject {
         state.workoutStartedAt = session?.startDate
         state.heartRate = session?.heartRate
         state.activeEnergy = session?.activeEnergy ?? 0
+        state.backgroundIssue = session?.backgroundIssue
         if let pending = pendingSet {
             let analysis = pending.completed.analysis
             state.pendingSet = PendingSetSummary(

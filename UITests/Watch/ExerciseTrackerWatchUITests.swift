@@ -35,7 +35,7 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
     func testCalibrationAndWorkoutWithSimulatedMotion() {
         let app = XCUIApplication()
         app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "3",
-                               "-speakInstructions", "NO"]
+                               "-speakInstructions", "NO", "-skipHealthPrompt", "YES"]
         app.launch()
 
         let start = app.buttons["Start Workout"]
