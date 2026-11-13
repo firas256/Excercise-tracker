@@ -3,6 +3,10 @@ import SwiftUI
 
 struct DashboardView: View {
     @EnvironmentObject var store: WorkoutStore
+    @EnvironmentObject var health: HealthPermissionService
+    @EnvironmentObject var connectivity: PhoneConnectivityService
+    @State private var startMessage: String?
+    @State private var starting = false
 
     private var weekStart: Date {
         Calendar.current.date(byAdding: .day, value: -6, to: Calendar.current.startOfDay(for: Date())) ?? Date()
@@ -29,6 +33,7 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    startOnWatchCard
                     if store.workouts.isEmpty {
                         emptyState
                     } else {
@@ -46,6 +51,31 @@ struct DashboardView: View {
             .navigationDestination(for: UUID.self) { id in
                 WorkoutDetailView(workoutID: id)
             }
+        }
+    }
+
+    /// Starts the workout on the watch from here; the calibration steps then appear on this screen.
+    private var startOnWatchCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button {
+                starting = true
+                startMessage = nil
+                health.startWorkoutOnWatch { error in
+                    starting = false
+                    startMessage = error.map { "Couldn't start on the watch (\($0)). Open Rep Coach on your watch and tap Start Workout." }
+                        ?? "Starting on your watch – keep this screen open to follow the calibration."
+                }
+            } label: {
+                Label(starting ? "Starting…" : "Start workout on Apple Watch", systemImage: "applewatch.radiowaves.left.and.right")
+                    .font(.headline)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+            }
+            .buttonStyle(.borderedProminent)
+            .disabled(starting)
+            Text(startMessage ?? "Calibration instructions are shown and read aloud here, so you don't need to look at your watch.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
     }
 

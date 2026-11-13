@@ -7,6 +7,7 @@ struct WatchSettingsView: View {
     @AppStorage(WatchSettings.recordTrainingDataKey) private var recordTrainingData = true
     @AppStorage(WatchSettings.weightUnitKey) private var weightUnit = "kg"
     @AppStorage(WatchSettings.calibrateEveryWorkoutKey) private var calibrateEveryWorkout = true
+    @AppStorage(WatchSettings.speakInstructionsKey) private var speakInstructions = true
     @State private var confirmReset = false
 
     var body: some View {
@@ -14,6 +15,11 @@ struct WatchSettingsView: View {
             Section {
                 Toggle("Calibrate every workout", isOn: $calibrateEveryWorkout)
                 Toggle("Tap on every rep", isOn: $hapticEveryRep)
+            }
+            Section {
+                Toggle("Speak instructions", isOn: $speakInstructions)
+            } footer: {
+                Text("Calibration steps are shown and spoken on your iPhone when Rep Coach is open there; otherwise the watch speaks them.")
             }
             Section {
                 Stepper(value: $restTimeout, in: 3...12, step: 1) {

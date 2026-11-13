@@ -29,6 +29,14 @@ struct ExerciseTrackerApp: App {
                     OnboardingView { onboardingComplete = true }
                 }
             }
+            .fullScreenCover(isPresented: Binding(
+                get: { connectivity.liveCalibration != nil },
+                set: { if !$0 { connectivity.liveCalibration = nil } }
+            )) {
+                CalibrationGuideView()
+                    .environmentObject(connectivity)
+                    .tint(.green)
+            }
             .environmentObject(store)
             .environmentObject(connectivity)
             .environmentObject(health)

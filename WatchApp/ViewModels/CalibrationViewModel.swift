@@ -2,18 +2,22 @@ import Foundation
 import WatchKit
 
 /// Drives the guided calibration: streams motion into `CalibrationEngine`, publishes the current
-/// instruction/phase for the UI and plays a haptic for every state change.
+/// instruction/phase for the UI, plays a haptic for every state change and mirrors the progress
+/// to the iPhone (big screen + spoken instructions). If the phone isn't reachable, the watch
+/// speaks the instructions itself.
 final class CalibrationViewModel: ObservableObject {
     @Published private(set) var pose: CalibrationPose = .armsDown
     @Published private(set) var phase: CalibrationPhase = .waitingForStillness
     @Published private(set) var stepIndex = 0
     @Published private(set) var isRunning = false
+    @Published private(set) var phoneIsShowingInstructions = false
 
     var onFinish: ((CalibrationProfile) -> Void)?
 
     private let motion: MotionService
     private var engine = CalibrationEngine()
-    private var lastPublishedProgress = -1.0
+    private var lastPublishedKey = ""
+    private var lastSentState: CalibrationLiveState?
 
     init(motion: MotionService = .shared) {
         self.motion = motion
@@ -30,6 +34,8 @@ final class CalibrationViewModel: ObservableObject {
         let wearing = Self.currentWearing
         let engine = CalibrationEngine(wrist: wearing.wrist, crownTowardsHand: wearing.crownTowardsHand)
         isRunning = true
+        lastSentState = nil
+        lastPublishedKey = ""
         motion.queue.async {
             self.engine = engine
             let events = engine.start()
@@ -59,46 +65,60 @@ final class CalibrationViewModel: ObservableObject {
 
     func cancel() {
         motion.stop()
+        if isRunning {
+            WatchConnectivityService.shared.sendLive(.cancelled(step: stepIndex, pose: pose))
+        }
         isRunning = false
+        Speaker.shared.stop()
     }
 
-    /// Throttles hold-progress updates to ~10 steps so SwiftUI is not redrawn 50×/s.
+    /// Publishes phase changes, and hold progress in ~10 steps, so SwiftUI is not redrawn 50×/s.
+    /// Runs on the motion queue.
     private func shouldPublish(_ phase: CalibrationPhase) -> Bool {
-        if case .holding(let p) = phase {
-            let bucket = (p * 10).rounded(.down) / 10
-            if bucket != lastPublishedProgress {
-                lastPublishedProgress = bucket
-                return true
-            }
-            return false
+        let key: String
+        switch phase {
+        case .waitingForMovement: key = "move"
+        case .waitingForStillness: key = "still"
+        case .holding(let p): key = "hold\(Int(p * 10))"
+        case .wrongPose(let m): key = "wrong" + m
+        case .finished: key = "done"
         }
-        if lastPublishedProgress != -1 {
-            lastPublishedProgress = -1
-            return true
-        }
-        return false
+        guard key != lastPublishedKey else { return false }
+        lastPublishedKey = key
+        return true
     }
 
     private func apply(_ events: [CalibrationEvent], phase: CalibrationPhase, step: Int) {
         self.phase = phase
         self.stepIndex = step
+        let phoneReachable = WatchConnectivityService.shared.isPhoneReachable
+        phoneIsShowingInstructions = phoneReachable
         for event in events {
             switch event {
             case .stepStarted(let p):
                 pose = p
                 if p != .armsDown { Haptics.nextInstruction() }
+                if !phoneReachable { Speaker.shared.say(p.spokenInstruction) }
             case .holdStarted:
                 Haptics.holdStarted()
             case .poseCaptured:
                 Haptics.poseCaptured()
-            case .wrongPose:
+            case .wrongPose(let message):
                 Haptics.wrongPose()
+                if !phoneReachable { Speaker.shared.say(message) }
             case .finished(let profile):
                 motion.stop()
                 isRunning = false
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { Haptics.calibrationDone() }
+                if !phoneReachable { Speaker.shared.say("Calibration complete.") }
                 onFinish?(profile)
             }
+        }
+        // Mirror to the iPhone.
+        let live = CalibrationLiveState(step: step, pose: pose, phase: phase)
+        if CalibrationLiveState.isWorthSending(live, after: lastSentState) {
+            lastSentState = live
+            WatchConnectivityService.shared.sendLive(live)
         }
     }
 }

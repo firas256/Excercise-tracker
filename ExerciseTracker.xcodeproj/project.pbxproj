@@ -196,6 +196,10 @@
 				);
 			};
 		};
+		A4FDC5520DEB1160358F6A39 = {
+			isa = PBXBuildFile;
+			fileRef = 63036F712C8F454A54C14D2C;
+		};
 		A63C0292BF92D71FB3967235 = {
 			isa = PBXBuildFile;
 			fileRef = A506CDFFA6C2F8A49978DA07;
@@ -227,6 +231,10 @@
 		C4AC1023D9A9C21F55278574 = {
 			isa = PBXBuildFile;
 			fileRef = 8468E84833FEA41E96EBF1B2;
+		};
+		CBEF5FAB625A2ECEAAF2B717 = {
+			isa = PBXBuildFile;
+			fileRef = FFF96181CD5E87CB30653961;
 		};
 		CC55E707EFCBAD59062FF274 = {
 			isa = PBXBuildFile;
@@ -454,6 +462,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = CalibrationProfile.swift;
+			sourceTree = "<group>";
+		};
+		63036F712C8F454A54C14D2C = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Speaker.swift;
 			sourceTree = "<group>";
 		};
 		65160FE46602A42A0D1A2B8B = {
@@ -717,6 +731,12 @@
 			path = Base.xcconfig;
 			sourceTree = "<group>";
 		};
+		FFF96181CD5E87CB30653961 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = CalibrationGuideView.swift;
+			sourceTree = "<group>";
+		};
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -768,6 +788,7 @@
 				88B6578368D8852CC0AD83DA,
 				B518FA7B29CE26852DE7AE39,
 				D790A2B9BB34BF22E2E243CB,
+				63036F712C8F454A54C14D2C,
 				5531A0400C24F00A0C3222D7,
 				428DF43BC3364A34EBBF3D1D,
 				78863E36B0E918BA3C0F8B87,
@@ -789,6 +810,7 @@
 		3B0A385BD42C67B1EC8FF7A4 = {
 			isa = PBXGroup;
 			children = (
+				FFF96181CD5E87CB30653961,
 				30654F4A067D4B8FE0EFC2CE,
 				2404E5FEB31580C67DA9CD22,
 				DC2D6206BB98D646211E6281,
@@ -1148,6 +1170,7 @@
 				98CBD35DDCBBA303D77867E2,
 				CC55E707EFCBAD59062FF274,
 				F3DCD94AF0B5819C547F1E88,
+				CBEF5FAB625A2ECEAAF2B717,
 				A0537ECBAFC47C7F555E5444,
 				7915589366CEC674DA19B580,
 				87FD081C924A62989167481E,
@@ -1194,6 +1217,7 @@
 				2A653E69BA0489081D4574E8,
 				F38DFD417D140E609BD43785,
 				A97EA3D9ACF5DAF52E7A63E8,
+				A4FDC5520DEB1160358F6A39,
 				1349F60DDBCC99A002995563,
 				9D894EF2FE37C6C8164BE03E,
 				3D386DAED47691CD69181B76,

@@ -7,6 +7,63 @@ enum SyncKeys {
     static let trainingLabel = "trainingLabel"
     static let trainingSetID = "trainingSetID"
     static let relabel = "relabel"
+    static let calibrationLive = "calibrationLive"
+}
+
+/// Live calibration progress the watch streams to the iPhone, so the instructions can be followed
+/// on the phone's big screen (and spoken) while the arm is raised and the watch can't be read.
+struct CalibrationLiveState: Codable, Equatable, Sendable {
+    enum Status: String, Codable, Sendable {
+        case moveIntoPosition
+        case holdStill
+        case holding
+        case wrongPose
+        case finished
+        case cancelled
+    }
+
+    var step: Int
+    var totalSteps: Int
+    var pose: CalibrationPose
+    var status: Status
+    /// Hold progress 0...1 while `status == .holding`.
+    var progress: Double
+    /// Correction shown when `status == .wrongPose`.
+    var message: String?
+
+    init(step: Int, pose: CalibrationPose, phase: CalibrationPhase) {
+        self.step = step
+        self.totalSteps = CalibrationPose.allCases.count
+        self.pose = pose
+        self.progress = 0
+        self.message = nil
+        switch phase {
+        case .waitingForMovement: status = .moveIntoPosition
+        case .waitingForStillness: status = .holdStill
+        case .holding(let p):
+            status = .holding
+            progress = p
+        case .wrongPose(let m):
+            status = .wrongPose
+            message = m
+        case .finished:
+            status = .finished
+            progress = 1
+        }
+    }
+
+    static func cancelled(step: Int, pose: CalibrationPose) -> CalibrationLiveState {
+        var s = CalibrationLiveState(step: step, pose: pose, phase: .waitingForMovement)
+        s.status = .cancelled
+        return s
+    }
+
+    /// True when the phone should be told about `new` (status/step change, or a hold-progress quarter).
+    static func isWorthSending(_ new: CalibrationLiveState, after old: CalibrationLiveState?) -> Bool {
+        guard let old else { return true }
+        if old.status != new.status || old.step != new.step || old.message != new.message { return true }
+        return (new.progress * 4).rounded(.down) != (old.progress * 4).rounded(.down)
+    }
 }
 
 /// Calibration info the watch shares with the phone (for display only).

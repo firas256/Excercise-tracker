@@ -79,8 +79,14 @@ it 3× faster, `-simulateMotion NO` turns the script off. On a real watch the re
 
 ## 5. Using it
 
-1. On the watch: **Start Workout**.
-2. **Calibrate** – follow the five instructions (arm hanging down, forward palm-down, palm-up, out to the side, overhead). For each pose the watch waits until you move into it and become **still**, holds for ~1 s, then buzzes ✔︎ and moves on. A different buzz means the pose didn't look right – adjust and hold again. (You can turn off "calibrate every workout" in the watch settings.)
+1. Open Rep Coach on your **iPhone** and tap **Start workout on Apple Watch** (or tap **Start Workout** on the watch).
+   The watch opens and starts the workout by itself.
+2. **Calibrate** – follow the five poses (arm hanging down, forward palm-down, palm-up, out to the side,
+   overhead). You can't read the watch with your arm up, so the steps appear **full-screen on the iPhone**
+   with a stick figure and are **read aloud**; if the phone isn't nearby, the watch speaks them. For each
+   pose the watch waits until you're still, holds for ~1 s, then taps your wrist ✔︎ and moves on. A
+   different tap (and a spoken hint) means the pose didn't look right – adjust and hold again. Keep the
+   iPhone app open on the bench in front of you. (You can turn off "calibrate every workout" in the watch settings.)
 3. **Lift.** Movement starts a set automatically. The watch taps on every rep (a double tap means the rep was flagged, e.g. partial or rushed). After ~3 reps it shows its guess, e.g. *"Bicep Curl? 92%"*.
    - Swipe left to **lock an exercise** (useful for machines like the leg press where your hands don't move).
    - Swipe right for **End Set / End Workout**.

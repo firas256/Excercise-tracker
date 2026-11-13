@@ -207,3 +207,22 @@ final class CodingTests: XCTestCase {
         XCTAssertEqual(parsed[100].rotation.y, samples[100].rotation.y, accuracy: 1e-3)
     }
 }
+
+final class CalibrationLiveStateTests: XCTestCase {
+    func testMapsPhasesAndThrottles() throws {
+        let holding = CalibrationLiveState(step: 1, pose: .armForward, phase: .holding(0.3))
+        XCTAssertEqual(holding.status, .holding)
+        XCTAssertEqual(holding.progress, 0.3, accuracy: 1e-9)
+        let wrong = CalibrationLiveState(step: 1, pose: .armForward, phase: .wrongPose("Raise your arm to shoulder height"))
+        XCTAssertEqual(wrong.status, .wrongPose)
+        XCTAssertEqual(wrong.message, "Raise your arm to shoulder height")
+        // Small progress changes are not resent; quarter steps and status changes are.
+        let slightlyMore = CalibrationLiveState(step: 1, pose: .armForward, phase: .holding(0.4))
+        XCTAssertFalse(CalibrationLiveState.isWorthSending(slightlyMore, after: holding))
+        XCTAssertTrue(CalibrationLiveState.isWorthSending(CalibrationLiveState(step: 1, pose: .armForward, phase: .holding(0.55)), after: holding))
+        XCTAssertTrue(CalibrationLiveState.isWorthSending(wrong, after: holding))
+        // Round-trips through the WatchConnectivity payload encoding.
+        let data = try XCTUnwrap(PayloadCoding.encode(wrong))
+        XCTAssertEqual(PayloadCoding.decode(CalibrationLiveState.self, from: data), wrong)
+    }
+}

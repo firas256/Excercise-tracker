@@ -28,6 +28,17 @@ enum CalibrationPose: Int, CaseIterable, Codable, Sendable {
         }
     }
 
+    /// Short version for text-to-speech.
+    var spokenInstruction: String {
+        switch self {
+        case .armsDown: return "Let your watch arm hang relaxed by your side, palm facing your leg, and hold still."
+        case .armForward: return "Raise the arm straight in front of you to shoulder height, palm facing the floor, and hold."
+        case .palmUp: return "Keep the arm in front and turn your palm to face the ceiling. Hold."
+        case .armSide: return "Move the arm out to your side at shoulder height, palm facing the floor. Hold."
+        case .armOverhead: return "Reach the arm straight up above your head. Hold."
+        }
+    }
+
     var symbolName: String {
         switch self {
         case .armsDown: return "figure.stand"

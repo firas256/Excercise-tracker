@@ -29,6 +29,11 @@ struct CalibrationView: View {
                         .font(.headline)
                     // Status sits right under the title so it's visible without scrolling.
                     statusLine
+                    if model.phoneIsShowingInstructions {
+                        Label("Follow along on your iPhone", systemImage: "iphone")
+                            .font(.caption2)
+                            .foregroundStyle(.secondary)
+                    }
                     Text(model.pose.instruction)
                         .font(.footnote)
                         .foregroundStyle(.secondary)

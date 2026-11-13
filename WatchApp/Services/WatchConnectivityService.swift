@@ -22,6 +22,15 @@ final class WatchConnectivityService: NSObject, WCSessionDelegate {
         WCSession.isSupported() && WCSession.default.activationState == .activated
     }
 
+    /// True when the iPhone app can receive live messages right now.
+    var isPhoneReachable: Bool { isActivated && WCSession.default.isReachable }
+
+    /// Streams live calibration progress to the iPhone (best effort: dropped if not reachable).
+    func sendLive(_ state: CalibrationLiveState) {
+        guard isPhoneReachable, let data = PayloadCoding.encode(state) else { return }
+        WCSession.default.sendMessage([SyncKeys.calibrationLive: data], replyHandler: nil, errorHandler: nil)
+    }
+
     func activate() {
         guard WCSession.isSupported() else { return }
         WCSession.default.delegate = self

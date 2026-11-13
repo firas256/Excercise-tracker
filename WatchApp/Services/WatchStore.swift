@@ -62,6 +62,7 @@ enum WatchSettings {
     static let weightUnitKey = "weightUnit"
     static let calibrateEveryWorkoutKey = "calibrateEveryWorkout"
     static let onboardedKey = "watchOnboarded"
+    static let speakInstructionsKey = "speakInstructions"
 
     static func registerDefaults() {
         UserDefaults.standard.register(defaults: [
@@ -70,6 +71,7 @@ enum WatchSettings {
             recordTrainingDataKey: true,
             weightUnitKey: "kg",
             calibrateEveryWorkoutKey: true,
+            speakInstructionsKey: true,
         ])
     }
 
@@ -78,4 +80,5 @@ enum WatchSettings {
     static var recordTrainingData: Bool { UserDefaults.standard.bool(forKey: recordTrainingDataKey) }
     static var weightUnit: String { UserDefaults.standard.string(forKey: weightUnitKey) ?? "kg" }
     static var calibrateEveryWorkout: Bool { UserDefaults.standard.bool(forKey: calibrateEveryWorkoutKey) }
+    static var speakInstructions: Bool { UserDefaults.standard.bool(forKey: speakInstructionsKey) }
 }

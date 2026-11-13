@@ -41,6 +41,19 @@ final class HealthPermissionService: ObservableObject {
         }
     }
 
+    /// Opens Rep Coach on the paired Apple Watch and starts a workout there (calibration first).
+    /// Uses HealthKit's workout launch, so it works even when the watch app isn't open.
+    func startWorkoutOnWatch(completion: @escaping (String?) -> Void) {
+        let configuration = HKWorkoutConfiguration()
+        configuration.activityType = .traditionalStrengthTraining
+        configuration.locationType = .indoor
+        healthStore.startWatchApp(with: configuration) { success, error in
+            DispatchQueue.main.async {
+                completion(success ? nil : (error?.localizedDescription ?? "Couldn't reach the watch."))
+            }
+        }
+    }
+
     func request(completion: (() -> Void)? = nil) {
         guard HKHealthStore.isHealthDataAvailable() else {
             status = .unavailable

@@ -1,7 +1,10 @@
+import HealthKit
 import SwiftUI
+import WatchKit
 
 @main
 struct ExerciseTrackerWatchApp: App {
+    @WKApplicationDelegateAdaptor(WatchAppDelegate.self) private var appDelegate
     @StateObject private var model = WatchAppModel()
 
     var body: some Scene {
@@ -10,6 +13,24 @@ struct ExerciseTrackerWatchApp: App {
                 .environmentObject(model)
                 .environmentObject(model.workout)
                 .environmentObject(model.session)
+                .onAppear { model.handlePendingStartRequest() }
+                .onReceive(NotificationCenter.default.publisher(for: WatchAppDelegate.startWorkoutRequested)) { _ in
+                    model.handlePendingStartRequest()
+                }
+        }
+    }
+}
+
+/// Receives "start a workout" from the iPhone app (HKHealthStore.startWatchApp), which launches
+/// the watch app even when it isn't open.
+final class WatchAppDelegate: NSObject, WKApplicationDelegate {
+    static let startWorkoutRequested = Notification.Name("startWorkoutRequested")
+    static var pendingStartRequest = false
+
+    func handle(_ workoutConfiguration: HKWorkoutConfiguration) {
+        DispatchQueue.main.async {
+            WatchAppDelegate.pendingStartRequest = true
+            NotificationCenter.default.post(name: WatchAppDelegate.startWorkoutRequested, object: nil)
         }
     }
 }
@@ -52,6 +73,21 @@ final class WatchAppModel: ObservableObject {
     func skipPermissions() {
         UserDefaults.standard.set(true, forKey: WatchSettings.onboardedKey)
         screen = .home
+    }
+
+    /// Starts a workout requested from the iPhone, unless one is already running.
+    func handlePendingStartRequest() {
+        guard WatchAppDelegate.pendingStartRequest else { return }
+        WatchAppDelegate.pendingStartRequest = false
+        switch screen {
+        case .onboarding:
+            UserDefaults.standard.set(true, forKey: WatchSettings.onboardedKey)
+            startWorkout()
+        case .home, .summary:
+            startWorkout()
+        case .calibration, .workout:
+            break
+        }
     }
 
     func startWorkout() {

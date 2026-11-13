@@ -7,6 +7,8 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     @Published private(set) var isPaired = false
     @Published private(set) var isWatchAppInstalled = false
     @Published private(set) var isReachable = false
+    /// Live calibration running on the watch (nil when none). Drives the full-screen guide.
+    @Published var liveCalibration: CalibrationLiveState?
 
     private let store: WorkoutStore
 
@@ -14,6 +16,10 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         self.store = store
         super.init()
         activate()
+        // `-demoCalibration YES` launch argument: show the calibration guide (Simulator / screenshots).
+        if UserDefaults.standard.bool(forKey: "demoCalibration") {
+            liveCalibration = CalibrationLiveState(step: 1, pose: .armForward, phase: .holding(0.6))
+        }
     }
 
     func activate() {
@@ -63,6 +69,25 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         if let data = userInfo[SyncKeys.workout] as? Data,
            let workout = PayloadCoding.decode(WorkoutRecord.self, from: data) {
             DispatchQueue.main.async { self.store.add(workout) }
+        }
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        guard let data = message[SyncKeys.calibrationLive] as? Data,
+              let state = PayloadCoding.decode(CalibrationLiveState.self, from: data) else { return }
+        DispatchQueue.main.async {
+            switch state.status {
+            case .cancelled:
+                self.liveCalibration = nil
+            case .finished:
+                self.liveCalibration = state
+                // Leave "Calibrated!" up for a moment, then get out of the way.
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    if self.liveCalibration?.status == .finished { self.liveCalibration = nil }
+                }
+            default:
+                self.liveCalibration = state
+            }
         }
     }
 
