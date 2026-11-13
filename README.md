@@ -89,27 +89,28 @@ it 3× faster, `-simulateMotion NO` turns the script off. On a real watch the re
 
 ## 6. How the "AI" part works
 
-**Is there a ready-made model?** I looked for a pre-trained, publicly available Core ML model that recognises
-gym exercises from Apple Watch motion data and didn't find a usable one: existing work is research datasets/code
-for other sensors, or apps without a reusable model. So the app takes a three-layer approach that works out of the box,
-and you **don't need to record training data**:
+**Is there a ready-made model?** No plug-and-play Core ML model for gym exercises from Apple Watch
+motion exists publicly, but there is good public *data*. So the app ships its own model, trained on
+Microsoft Research's RecoFit dataset, and you **don't need to record training data**. Two classifiers vote:
 
-1. **Built-in classifier (works immediately).** Each set is summarised by 14 orientation-independent
-   features (forearm angle at start/turnaround, grip/palm direction, dominant rotation axis, vertical and
-   push/pull hand travel, start-high/low, tempo…) computed in the calibrated *arm frame*. A Gaussian
-   classifier compares them against biomechanical prototypes of 29 exercises.
-2. **Learns from you automatically.** Whenever you confirm or correct a set, that exercise's prototype is
-   updated with your data (Bayesian update), so recognition adapts to your form, your machines and your
-   grip – without a separate recording session.
-3. **Optional Core ML model.** The watch can save each confirmed set's sensor data; the iPhone exports it
-   in the folder layout Create ML expects. Train an *Activity Classifier* in Create ML, drop
-   `ExerciseActivityClassifier.mlmodel` into the watch target, and it's blended in automatically.
-   See [`ML/README.md`](ML/README.md).
+1. **Neural network (Core ML, on the watch).** A small 1-D CNN looks at 5-second windows of calibrated arm
+   motion. It was trained on 94 people doing 20 exercises (curls, presses, raises, rows, squats, lunges,
+   triceps work, push-ups, dips, kettlebell swings, sit-ups, burpees…) plus "not an exercise" (walking,
+   cardio, stretching). On people it never saw during training it gets about **86–88 % of sets** right.
+   The data was converted into the app's arm frame and augmented for left/right arm, strap position,
+   grip, tempo and wrist placement – details in [`ML/README.md`](ML/README.md).
+2. **Personal classifier that learns from you.** Each set is also summarised by 14 orientation-independent
+   features (forearm angles, grip, rotation axis, vertical and push/pull travel, tempo…) compared with
+   biomechanical prototypes of 29 exercises. Every set you confirm or correct updates these with your
+   data, and the more you confirm, the more say this classifier gets.
 
-Honest limits: some pairs move the wrist almost identically (lateral vs. front raise, bench press vs. lat
-pulldown vs. goblet squat) – the watch will often get the family right and learn the rest from your
-corrections. Exercises where the hands are fixed (leg press, leg extension/curl, pull-ups, push-ups, dips)
-should be picked manually; counting is best-effort.
+You can also train your own model from your exported sets in Create ML and replace the shipped one.
+
+Honest limits: some pairs move the wrist almost identically (bench press vs. shoulder press, squat vs.
+goblet squat, lateral vs. front raise) – the watch will often get the family right and learn the rest from
+your corrections. Exercises where the hands are fixed (leg press, leg extension/curl, pull-ups) should be
+picked manually; counting is best-effort. The model's accuracy on a real Apple Watch hasn't been measured
+yet – the evaluation above is on held-out RecoFit participants.
 
 **Rep counting.** Four candidate signals are derived (gravity-based forearm angle, gyro rotation,
 vertical travel, push/pull travel). The most rhythmic one (autocorrelation) is chosen and each
@@ -124,7 +125,7 @@ and speed loss across the set (a velocity-based-training fatigue indicator).
 
 | Free weights | Machines & cables | Bodyweight |
 |---|---|---|
-| Bicep curl, hammer curl, shoulder press, lateral raise, front raise, upright row, shrug, bench press, dumbbell fly, bent-over row, deadlift, Romanian deadlift, barbell squat, goblet squat, lunge, overhead triceps extension, skull crusher, kettlebell swing | Lat pulldown, seated cable row, chest press machine, pec deck / cable fly, triceps pushdown, leg press*, leg extension*, leg curl* | Pull-up*, push-up*, dip* |
+| Bicep curl, hammer curl, shoulder press, lateral raise, front raise, upright row, shrug, bench press, dumbbell fly, bent-over row, deadlift, Romanian deadlift, barbell squat, goblet squat, lunge, overhead triceps extension, skull crusher, triceps kickback, reverse fly, kettlebell swing | Lat pulldown, seated cable row, chest press machine, pec deck / cable fly, triceps pushdown, leg press*, leg extension*, leg curl* | Pull-up*, push-up*, dip*, sit-up / crunch, Russian twist, burpee, jumping jacks |
 
 \* hands stay fixed – choose these manually on the watch; counting is best-effort.
 
@@ -141,7 +142,7 @@ iOSApp/                     iPhone app (history, charts, settings, export)
 Config/                     Bundle-ID prefix, entitlements, Info.plist keys
 Tests/                      Unit tests for the core (simulated curls, presses, rows, …)
 UITests/                    iPhone + Watch UI tests (screenshots of every screen)
-ML/                         How to train your own Core ML model
+ML/                         Exercise model: training pipeline, evaluation, docs
 scripts/                    Project generator, icon generator
 ```
 
