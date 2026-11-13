@@ -130,6 +130,9 @@ final class ExerciseTrackerUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
         snap(app, "ios-10-dashboard")
         app.swipeUp()
+        // The demo calibration ran through the real engine: personal measurements are shown.
+        XCTAssertTrue(app.staticTexts["Your measurements"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Arm (shoulder to watch)"].exists)
         snap(app, "ios-11-dashboard-scrolled")
 
         openTab(app, "History")
