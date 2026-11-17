@@ -16,6 +16,10 @@ Everything runs on-device. No account, no server.
 
 *Screenshots from the automated Simulator UI tests (the watch runs on scripted motion there).*
 
+**Going to the App Store:** see the [launch plan](docs/APP_STORE_LAUNCH_PLAN.md) (steps, owners, testing
+checklist, review risks, datasets), the [App Store listing draft](docs/app-store/listing.md), the
+[privacy policy](docs/privacy-policy.md) and the [support page](docs/support.md).
+
 ---
 
 ## 1. What you need
