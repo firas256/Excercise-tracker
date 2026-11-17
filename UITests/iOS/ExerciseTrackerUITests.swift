@@ -1,3 +1,4 @@
+import UIKit
 import XCTest
 
 /// Walks through every iPhone screen and attaches a screenshot of each.
@@ -12,6 +13,18 @@ final class ExerciseTrackerUITests: XCTestCase {
     override func tearDown() {
         XCUIApplication().terminate()
         super.tearDown()
+    }
+
+    /// Brightness (0 black … 1 white) of one background pixel near the top-left of the screen.
+    private func backgroundBrightness(_ app: XCUIApplication) -> CGFloat {
+        guard let image = app.screenshot().image.cgImage else { return -1 }
+        let x = image.width / 20, y = image.height / 8  // left margin, below the status bar
+        var pixel = [UInt8](repeating: 0, count: 4)
+        guard let ctx = CGContext(data: &pixel, width: 1, height: 1, bitsPerComponent: 8, bytesPerRow: 4,
+                                  space: CGColorSpaceCreateDeviceRGB(),
+                                  bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue) else { return -1 }
+        ctx.draw(image, in: CGRect(x: -x, y: -(image.height - 1 - y), width: image.width, height: image.height))
+        return (CGFloat(pixel[0]) + CGFloat(pixel[1]) + CGFloat(pixel[2])) / 765
     }
 
     private func snap(_ app: XCUIApplication, _ name: String) {
@@ -190,6 +203,38 @@ final class ExerciseTrackerUITests: XCTestCase {
 
     // MARK: Accessibility
 
+    /// The largest accessibility text size (Settings › Accessibility › Larger Text, maximum):
+    /// screenshots of the screens to check by eye, including the rows the audit predicts "may be
+    /// clipped at larger Dynamic Type sizes".
+    func testLargestTextSize() throws {
+        let largest = ["-UIPreferredContentSizeCategoryName", "UICTContentSizeCategoryAccessibilityXXXL"]
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"] + largest
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
+        snap(app, "ios-80-largest-text-today")
+        openTab(app, "Settings")
+        let export = app.buttons["Export my recordings"]
+        for _ in 0..<10 where !(export.exists && export.isHittable) { app.swipeUp() }
+        XCTAssertTrue(export.exists)
+        snap(app, "ios-81-largest-text-settings")
+        let about = app.buttons["Privacy, safety & credits"]
+        for _ in 0..<14 where !(about.exists && about.isHittable) { app.swipeUp() }
+        about.tap()
+        let point = app.staticTexts["No account, no ads, no analytics, no tracking. Nothing is sent to the developer or anyone else."]
+        XCTAssertTrue(point.waitForExistence(timeout: 5))
+        for _ in 0..<10 where !point.isHittable { app.swipeUp() }
+        snap(app, "ios-82-largest-text-privacy")
+        app.terminate()
+
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"] + largest
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
+        snap(app, "ios-83-largest-text-live-workout")
+        app.swipeUp()
+        snap(app, "ios-84-largest-text-live-workout-controls")
+    }
+
     /// Apple's accessibility audit (contrast, VoiceOver labels, tap-target size, Dynamic Type,
     /// clipped text…) on every main screen, in light and dark mode. Every issue is listed with its
     /// screen, element and position. These are reported but don't fail the test:
@@ -198,7 +243,9 @@ final class ExerciseTrackerUITests: XCTestCase {
     ///   without being able to tie it to an element). Long screens are audited again scrolled to
     ///   the bottom, so the rows that were under the tab bar are checked unobstructed;
     /// - "nearly passed" contrast: Apple's standard secondary text colour;
-    /// - "partially unsupported" Dynamic Type: the text does grow, just not at every size.
+    /// - "partially unsupported" Dynamic Type: the text does grow, just not at every size;
+    /// - "may be clipped at larger Dynamic Type sizes": a prediction, checked for real by
+    ///   `testLargestTextSize` (screenshots at the largest size).
     func testAccessibilityAudit() throws {
         let app = XCUIApplication()
         app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"]
@@ -223,8 +270,10 @@ final class ExerciseTrackerUITests: XCTestCase {
                     let nearlyPassed = issue.compactDescription.localizedCaseInsensitiveContains("nearly passed")
                     let partialDynamicType = issue.auditType == .dynamicType
                         && issue.compactDescription.localizedCaseInsensitiveContains("partially")
-                    if underTabBar || nearlyPassed || partialDynamicType {
-                        warnings.append(line)
+                    let predictedClip = issue.auditType == .textClipped
+                        && issue.detailedDescription.localizedCaseInsensitiveContains("larger Dynamic Type sizes")
+                    if underTabBar || nearlyPassed || partialDynamicType || predictedClip {
+                        warnings.append(line + (predictedClip ? " | predicted, see testLargestTextSize" : ""))
                     } else {
                         issues.append(line + " | " + issue.detailedDescription)
                     }
@@ -280,13 +329,15 @@ final class ExerciseTrackerUITests: XCTestCase {
         try audit("Calibration guide")
         app.terminate()
 
-        // Dark Mode: the same colours must work on dark backgrounds.
-        XCUIDevice.shared.appearance = .dark
-        defer { XCUIDevice.shared.appearance = .light }
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"]
+        // Dark Mode: the same colours must work on dark backgrounds. (The app is told to render dark:
+        // XCUIDevice's appearance setting didn't take effect on the CI Simulator.)
+        let dark = ["-forceColorScheme", "dark"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"] + dark
         app.launch()
         XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
         snap(app, "ios-90-dark-dashboard")
+        let brightness = backgroundBrightness(app)
+        XCTAssertLessThan(brightness, 0.3, "the app isn't in Dark Mode (background brightness \(brightness))")
         try audit("Today (dark)")
         openTab(app, "Exercises")
         XCTAssertTrue(app.staticTexts["Bicep Curl"].firstMatch.waitForExistence(timeout: 5))
@@ -295,16 +346,17 @@ final class ExerciseTrackerUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         try audit("Settings (dark)")
         app.terminate()
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"] + dark
         app.launch()
         XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
         snap(app, "ios-91-dark-live-workout")
         try audit("Live workout (dark)")
         app.terminate()
         app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES",
-                               "-stillAnimations", "YES"]
+                               "-stillAnimations", "YES"] + dark
         app.launch()
         XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
+        snap(app, "ios-92-dark-calibration-guide")
         try audit("Calibration guide (dark)")
 
         let report = XCTAttachment(string: "ISSUES (\(issues.count))\n" + issues.joined(separator: "\n")

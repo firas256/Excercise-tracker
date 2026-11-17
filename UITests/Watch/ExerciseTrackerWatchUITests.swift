@@ -83,8 +83,8 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         XCTAssertTrue(guess.waitForExistence(timeout: 40), "exercise guess never appeared")
         snap(app, "watch-07-live-reps")
 
-        // Set summary after the rest period (the script rests ~40 s before the next set; if the next
-        // set starts before Save is tapped, the app saves the summary by itself, which is fine too).
+        // Set summary after the set (the script rests 90 s – 30 s at 3× – before the next set; if
+        // the next set starts before Save is tapped, the app saves the summary by itself).
         let save = app.buttons["Save Set"]
         XCTAssertTrue(save.waitForExistence(timeout: 60), "set summary never appeared")
         snap(app, "watch-08-set-summary")

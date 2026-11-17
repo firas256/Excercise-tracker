@@ -11,6 +11,15 @@ struct ExerciseTrackerApp: App {
     @AppStorage("onboardingComplete") private var onboardingComplete = false
     @Environment(\.scenePhase) private var scenePhase
 
+    /// `-forceColorScheme dark|light` (UI tests): render in that appearance whatever the device uses.
+    private static let forcedColorScheme: ColorScheme? = {
+        switch UserDefaults.standard.string(forKey: "forceColorScheme") {
+        case "dark": return .dark
+        case "light": return .light
+        default: return nil
+        }
+    }()
+
     init() {
         // `-resetOnboarding` (UI tests): start from the first-launch experience.
         if ProcessInfo.processInfo.arguments.contains("-resetOnboarding") {
@@ -53,11 +62,13 @@ struct ExerciseTrackerApp: App {
                 .environmentObject(connectivity)
                 .environmentObject(store)
                 .tint(Color.brand)
+                .preferredColorScheme(Self.forcedColorScheme)
             }
             .environmentObject(store)
             .environmentObject(connectivity)
             .environmentObject(health)
             .tint(Color.brand)
+            .preferredColorScheme(Self.forcedColorScheme)
             .onChange(of: scenePhase) { _, phase in
                 // Messages from the watch are missed while the app is in the background.
                 if phase == .active { connectivity.refreshLiveWorkout() }

@@ -77,8 +77,9 @@ Datasets checked and their licences: see the table at the end.
   3 body sizes, too-short reps, calibration measurements, sync protocol.
 - Simulator UI tests (iPhone + Watch): every screen, the live workout, set review, calibration and a
   full simulated watch workout. The job fails if any test fails, and uploads screenshots.
-- **Accessibility audit** on every main iPhone screen (contrast, VoiceOver labels, tap targets,
-  Dynamic Type, clipped text).
+- **Accessibility audit** (Apple's `performAccessibilityAudit`) on every main iPhone screen, in light
+  and dark mode: contrast, VoiceOver labels, tap targets, Dynamic Type, clipped text. Text colours are
+  a WCAG-AA palette (`iOSApp/Views/Theme.swift`, 4.5:1 for text, also on tinted badges and buttons).
 - **Release build** check: the App Store configuration builds and contains both privacy manifests
   and all required Info.plist keys.
 - Core ML model check: the shipped model reproduces its PyTorch source.

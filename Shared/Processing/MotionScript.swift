@@ -43,7 +43,9 @@ enum MotionScript {
             var o = SyntheticMotion.Options()
             o.reps = entry.1
             o.stillLead = 4
-            o.stillTail = 40
+            // A long first rest leaves time to review and save set 1 (UI test at 3× speed: ~30 s);
+            // after that, the next set starting auto-saves an unreviewed summary.
+            o.stillTail = i == 0 ? 90 : 40
             o.noise = 0.02
             o.sampleRate = rate
             o.seed = UInt64(10 + i)
