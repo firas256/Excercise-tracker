@@ -44,11 +44,15 @@ struct ArmMotionView: View {
             ZStack(alignment: .bottomLeading) {
                 Canvas { ctx, size in draw(&ctx, size: size, time: t, frame: frame) }
                     .accessibilityHidden(true)
+                    // Labels drawn inside the fixed-size 3-D view stop growing at xLarge so they
+                    // don't run into each other (the numbers are in the caption below too).
+                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 if let frame {
                     Text("Forearm \(Int(frame.elevation.rounded()))°  ·  Wrist \(frame.lift >= 0 ? "+" : "")\(Int(frame.lift.rounded())) cm")
                         .font(.caption.monospacedDigit())
                         .foregroundStyle(.secondary)
                         .padding(10)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 } else {
                     Text("Waiting for motion from your watch…")
                         .font(.caption)

@@ -78,29 +78,47 @@ struct LiveWorkoutView: View {
         return date.timeIntervalSince(last) > 12
     }
 
-    private func header(_ state: LiveWorkoutState) -> some View {
-        HStack(spacing: 14) {
-            Button {
-                connectivity.liveWorkoutMinimized = true
-            } label: {
-                Image(systemName: "chevron.down.circle.fill").font(.title2)
-                    .frame(minWidth: 44, minHeight: 44)
-                    .contentShape(Rectangle())
+    /// Title row with the workout clock and heart rate beside it – or, at accessibility text
+    /// sizes, below it (side by side they'd be squeezed to a letter per line).
+    @ViewBuilder private func header(_ state: LiveWorkoutState) -> some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 14) { titleBlock(state) }
+                HStack(spacing: 14) { clockAndHeartRate(state) }
             }
-            .accessibilityLabel("Minimize")
-            .foregroundStyle(.secondary)
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Live workout").font(.headline)
-                Text("Set \(state.completedSets + (state.status == .reviewing ? 0 : 1))")
-                    .font(.caption).foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            HStack(spacing: 14) {
+                titleBlock(state)
+                Spacer()
+                clockAndHeartRate(state)
             }
-            Spacer()
-            if let start = state.workoutStartedAt {
-                Text(start, style: .timer).font(.title3.monospacedDigit()).foregroundStyle(Color.warning)
-            }
-            if let hr = state.heartRate {
-                Label("\(Int(hr))", systemImage: "heart.fill").foregroundStyle(Color.danger).font(.subheadline.bold())
-            }
+        }
+    }
+
+    @ViewBuilder private func titleBlock(_ state: LiveWorkoutState) -> some View {
+        Button {
+            connectivity.liveWorkoutMinimized = true
+        } label: {
+            Image(systemName: "chevron.down.circle.fill").font(.title2)
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+        }
+        .accessibilityLabel("Minimize")
+        .foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Live workout").font(.headline)
+            Text("Set \(state.completedSets + (state.status == .reviewing ? 0 : 1))")
+                .font(.caption).foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder private func clockAndHeartRate(_ state: LiveWorkoutState) -> some View {
+        if let start = state.workoutStartedAt {
+            Text(start, style: .timer).font(.title3.monospacedDigit()).foregroundStyle(Color.warning)
+        }
+        if let hr = state.heartRate {
+            Label("\(Int(hr))", systemImage: "heart.fill").foregroundStyle(Color.danger).font(.subheadline.bold())
         }
     }
 

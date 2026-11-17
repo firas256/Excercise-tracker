@@ -263,28 +263,41 @@ final class ExerciseTrackerUITests: XCTestCase {
             let tabBar = app.tabBars.firstMatch, navBar = app.navigationBars.firstMatch
             let bars = [tabBar.exists ? tabBar.frame.insetBy(dx: 0, dy: -24) : CGRect.null,
                         navBar.exists ? navBar.frame.insetBy(dx: 0, dy: -16) : CGRect.null].filter { !$0.isNull }
-            do {
-                try app.performAccessibilityAudit { issue in
-                    let frame = issue.element?.frame ?? .null
-                    let place = frame.isNull ? "" : " at y \(Int(frame.minY))–\(Int(frame.maxY))"
-                    let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
-                    let line = "\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)\(place)"
-                    let underTabBar = !bars.isEmpty && (frame.isNull ? (issue.auditType == .elementDetection || issue.auditType == .contrast)
+            // A busy Simulator sometimes can't finish an audit in time: one retry.
+            var lastError: Error?
+            for attempt in 0..<2 {
+                if attempt > 0 { RunLoop.current.run(until: Date().addingTimeInterval(3)) }
+                var found: [(failure: Bool, line: String)] = []
+                do {
+                    try app.performAccessibilityAudit { issue in
+                        let frame = issue.element?.frame ?? .null
+                        let place = frame.isNull ? "" : " at y \(Int(frame.minY))–\(Int(frame.maxY))"
+                        let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
+                        let line = "\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)\(place)"
+                        let underBar = !bars.isEmpty && (frame.isNull ? (issue.auditType == .elementDetection || issue.auditType == .contrast)
                                                                       : bars.contains { frame.intersects($0) })
-                    let nearlyPassed = issue.compactDescription.localizedCaseInsensitiveContains("nearly passed")
-                    let partialDynamicType = issue.auditType == .dynamicType
-                        && issue.compactDescription.localizedCaseInsensitiveContains("partially")
-                    let predictedClip = issue.auditType == .textClipped
-                        && issue.detailedDescription.localizedCaseInsensitiveContains("larger Dynamic Type sizes")
-                    if underTabBar || nearlyPassed || partialDynamicType || predictedClip {
-                        warnings.append(line + (predictedClip ? " | predicted, see testLargestTextSize" : ""))
-                    } else {
-                        issues.append(line + " | " + issue.detailedDescription)
+                        let nearlyPassed = issue.compactDescription.localizedCaseInsensitiveContains("nearly passed")
+                        let partialDynamicType = issue.auditType == .dynamicType
+                            && issue.compactDescription.localizedCaseInsensitiveContains("partially")
+                        let predictedClip = issue.auditType == .textClipped
+                            && issue.detailedDescription.localizedCaseInsensitiveContains("larger Dynamic Type sizes")
+                        if underBar || nearlyPassed || partialDynamicType || predictedClip {
+                            found.append((false, line + (predictedClip ? " | predicted, see testLargestTextSize" : "")))
+                        } else {
+                            found.append((true, line + " | " + issue.detailedDescription))
+                        }
+                        return true  // collect them all; asserted below
                     }
-                    return true  // collect them all; asserted below
+                    issues += found.filter { $0.failure }.map { $0.line }
+                    warnings += found.filter { !$0.failure }.map { $0.line }
+                    lastError = nil
+                    break
+                } catch {
+                    lastError = error
                 }
-            } catch {
-                issues.append("\(screen) | audit could not run | \(error.localizedDescription) | –")
+            }
+            if let lastError {
+                issues.append("\(screen) | audit could not run | \(lastError.localizedDescription) | –")
             }
         }
 
