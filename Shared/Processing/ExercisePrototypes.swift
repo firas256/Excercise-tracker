@@ -110,7 +110,7 @@ enum ExercisePrototypes {
         }
         // Exercises done with more than one grip (bar or rope pushdown…) can't be described by one
         // average palm orientation; `GripModel` judges their grip instead.
-        if (GripModel.grips(for: e)?.count ?? 0) > 1 {
+        if (GripModel.grips(for: e)?.filter { $0.weight >= 0.5 }.count ?? 0) > 1 {
             stats[.palmDown] = nil
             stats[.thumbUp] = nil
         }
@@ -137,8 +137,10 @@ enum ExercisePrototypes {
             .rotationAmplitude: (120, nil), .yawAmplitude: (15, 20), .verticalAmplitude: (45, nil),
             .forearmAmplitude: (8, nil), .startsHigh: (0.1, nil), .repPeriod: (3, nil),
         ]),
+        // Forearm angle: upright for a strict dumbbell press, but often 30–55° with the elbows
+        // forward or on a machine (seen in real recordings), hence the wide spread.
         make(.shoulderPress, prior: 1.0, [
-            .startElevation: (60, 18), .peakElevation: (80, 12), .rotationAmplitude: (25, 20),
+            .startElevation: (45, 22), .peakElevation: (68, 18), .rotationAmplitude: (25, 20),
             .yawAmplitude: (10, 15), .verticalAmplitude: (40, nil), .forearmAmplitude: (35, nil),
             .startsHigh: (0.1, nil), .pushDirection: (0.9, nil), .repPeriod: (3, nil),
         ]),

@@ -86,8 +86,36 @@ final class GripTests: XCTestCase {
         body.supinationRange = 140
         let features = try XCTUnwrap(SetAnalyzer(body: body).analyze(limited).features)
         XCTAssertEqual(GripModel.grip(of: features, body: body), .supinated)
-        XCTAssertGreaterThan(GripModel.factor(for: .bicepCurl, features: features, body: body), 0.8)
-        XCTAssertLessThan(GripModel.factor(for: .tricepsPushdown, features: features, body: body), 0.3)
+        let curlFactor = GripModel.factor(for: .bicepCurl, features: features, body: body)
+        let pushdownFactor = GripModel.factor(for: .tricepsPushdown, features: features, body: body)
+        XCTAssertGreaterThan(curlFactor, 0.8)
+        // Underhand pushdowns exist, so palm-up is unusual for a pushdown, not impossible.
+        XCTAssertLessThanOrEqual(pushdownFactor, 0.5 + 1e-6)
+        XCTAssertGreaterThan(curlFactor / pushdownFactor, 1.8)
+    }
+
+    func testGripsTheUserConfirmedCountAsNormal() throws {
+        // Someone who does their pushdowns underhand: palm up is unusual for a pushdown – until
+        // they've confirmed a few such sets.
+        func features(_ seed: UInt64) throws -> MotionFeatures {
+            var o = SyntheticMotion.Options()
+            o.grip = .supinated
+            o.seed = seed
+            let samples = try XCTUnwrap(SyntheticMotion.generate(.tricepsPushdown, options: o))
+            return try XCTUnwrap(SetAnalyzer().analyze(samples, lockedExercise: .tricepsPushdown).features)
+        }
+        let set = try features(9)
+        let before = GripModel.factor(for: .tricepsPushdown, features: set, body: .typical)
+        var personal = ClassifierPersonalization()
+        personal.add(try features(1), label: .tricepsPushdown)
+        personal.add(try features(2), label: .tricepsPushdown)
+        // Two sets aren't enough (they could be mislabelled curls)…
+        XCTAssertLessThanOrEqual(GripModel.factor(for: .tricepsPushdown, features: set, body: .typical, personal: personal), 0.5 + 1e-6)
+        personal.add(try features(3), label: .tricepsPushdown)
+        // …three are.
+        let after = GripModel.factor(for: .tricepsPushdown, features: set, body: .typical, personal: personal)
+        XCTAssertLessThanOrEqual(before, 0.5 + 1e-6)
+        XCTAssertGreaterThan(after, 0.95)
     }
 }
 

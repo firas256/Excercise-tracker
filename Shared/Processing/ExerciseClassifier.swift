@@ -33,6 +33,13 @@ struct PrototypeExerciseClassifier: ExerciseClassifying {
     var candidates: [ExerciseType]
     /// Strength (in pseudo-examples) of the built-in prototype when blending with user data.
     var priorStrength: Double = 2
+    /// Examples needed before the user's sets may add a feature the built-in pattern leaves out on
+    /// purpose (e.g. the grip of an exercise done with several grips). A few examples – which may be
+    /// mislabelled – shouldn't create new rules.
+    var examplesForNewFeatures = 8
+    /// Penalise classes for being spread out (Gaussian normalisation). Off: a varied user class
+    /// isn't punished for its variety.
+    var widthPenalty = true
     /// The user's measured body: the built-in patterns are scaled to their arm length, and the
     /// swing radius is compared with their own forearm / arm length.
     var body: BodyProfile
@@ -77,7 +84,8 @@ struct PrototypeExerciseClassifier: ExerciseClassifying {
                 let z = (x - g.mean) / g.sd
                 let ref = ExercisePrototypes.defaultSD(key)
                 // Cap the penalty so a single odd feature cannot veto an exercise.
-                logScore += ExercisePrototypes.weight(key) * (-0.5 * min(z * z, 25) - log(g.sd / ref))
+                let width = widthPenalty ? log(g.sd / ref) : 0
+                logScore += ExercisePrototypes.weight(key) * (-0.5 * min(z * z, 25) - width)
             }
             scores.append((proto.exercise, logScore))
         }
@@ -97,6 +105,7 @@ struct PrototypeExerciseClassifier: ExerciseClassifying {
         for key in MotionFeatures.Key.allCases {
             let xs = examples.compactMap { $0.value(key) }
             guard !xs.isEmpty else { continue }
+            if base[key] == nil && xs.count < examplesForNewFeatures { continue }
             let prior = base[key] ?? FeatureGaussian(mean: SignalMath.mean(xs), sd: ExercisePrototypes.defaultSD(key))
             let k0 = base[key] == nil ? 0.5 : priorStrength
             let n = Double(xs.count)

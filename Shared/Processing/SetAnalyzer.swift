@@ -24,10 +24,14 @@ struct SetAnalyzer {
     var classifier: ExerciseClassifying
     /// The user's measured body (from calibration): personal angles, grip range and arm length.
     var body: BodyProfile
+    /// The user's confirmed sets: grips they use count as normal for those exercises.
+    var personalization: ClassifierPersonalization
 
-    init(classifier: ExerciseClassifying? = nil, body: BodyProfile = .typical) {
-        self.classifier = classifier ?? PrototypeExerciseClassifier(body: body)
+    init(classifier: ExerciseClassifying? = nil, body: BodyProfile = .typical,
+         personalization: ClassifierPersonalization = ClassifierPersonalization()) {
+        self.classifier = classifier ?? PrototypeExerciseClassifier(personalization: personalization, body: body)
         self.body = body
+        self.personalization = personalization
     }
 
     func analyze(_ samples: [ArmSample], lockedExercise: ExerciseType? = nil) -> SetAnalysis {
@@ -41,7 +45,8 @@ struct SetAnalyzer {
         var candidates: [ExerciseCandidate] = []
         if lockedExercise == nil, let features, detection.segments.count >= 2 {
             // The grip rules out exercises whatever suggested them (including the Core ML model).
-            candidates = GripModel.apply(classifier.classify(features, samples: samples), features: features, body: body)
+            candidates = GripModel.apply(classifier.classify(features, samples: samples), features: features, body: body,
+                                         personal: personalization)
         }
         let exercise = lockedExercise ?? candidates.first?.exercise
         let allReps = FeedbackEngine.repMetrics(signals, detection: detection, exercise: exercise, body: body)

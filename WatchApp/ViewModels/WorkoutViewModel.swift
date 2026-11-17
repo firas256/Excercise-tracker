@@ -73,11 +73,12 @@ final class WorkoutViewModel: ObservableObject {
         configuration.restTimeout = max(3, WatchSettings.restTimeout)
         body = profile.body
         let body = self.body
+        let personalization = store.personalization
         let classifier = makeClassifier()
         let locked = lockedExercise
         motion.queue.async {
             self.tracker.configuration = configuration
-            self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body)
+            self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body, personalization: personalization)
             self.tracker.lockedExercise = locked
             self.tracker.cancelSet()
             self.frameBuilder.reset()
@@ -306,7 +307,8 @@ final class WorkoutViewModel: ObservableObject {
             store.learn(features, label: finalExercise)
             let classifier = makeClassifier()
             let body = self.body
-            motion.queue.async { self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body) }
+            let personalization = store.personalization
+            motion.queue.async { self.tracker.analyzer = SetAnalyzer(classifier: classifier, body: body, personalization: personalization) }
         }
         if WatchSettings.recordTrainingData {
             WatchConnectivityService.shared.sendTrainingRecording(samples: pending.completed.samples,
