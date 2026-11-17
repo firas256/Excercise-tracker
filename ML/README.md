@@ -69,16 +69,44 @@ Then copy `out/ExerciseActivityClassifier.mlpackage` into `WatchApp/ML/`. Traini
 
 ## Use your own recordings
 
-The watch can save each confirmed set's motion (Settings › Save sensor data); the iPhone app exports
-them (Settings › Prepare export for Create ML) as `TrainingData/<exercise>/<set>.csv` in the same arm
-frame. Two options:
+The watch can save each confirmed set's motion (watch Settings › Save sensor data); the iPhone app
+exports them (Settings › Export my recordings) as `TrainingData/<exercise>/<set>.csv` in the same
+calibrated arm frame.
 
 - **See how the model does on your sets:** `python ML/training/evaluate_csv.py out TrainingData/`
-- **Train your own model in Create ML:** Xcode › Open Developer Tool › Create ML › Activity Classifier,
-  choose the `TrainingData` folder, select the nine `gravity_*`, `accel_*`, `rotation_*` columns,
-  prediction window 100. Save it as `ExerciseActivityClassifier.mlmodel`, replace the shipped model in
-  the Watch App target. The app reads input names and window size from the model; for a model trained at
-  50 Hz there is nothing else to change.
+- **Retrain with them** (they're repeated `--weight` times; ~30 % are held back and reported
+  separately, so you see accuracy on sets of yours the model never saw; exercises the shipped model
+  doesn't know become new classes once there are `--min-sets` sets of them):
+
+```bash
+python ML/training/add_user_data.py recofit_armframe.npz RepCoach-TrainingData.zip merged.npz
+```
+
+```bash
+python ML/training/train_model.py merged.npz out --also-test user-holdout
+```
+
+  Ship the result only if *both* the RecoFit held-out people and your held-out sets do at least as
+  well as the current model, then regenerate the CI fixtures:
+  `python ML/training/make_fixtures.py out ML/training/fixtures` and copy
+  `out/ExerciseActivityClassifier.mlpackage` to `WatchApp/ML/`.
+
+Labels in your export are whatever was confirmed after each set, so a set saved with a wrong guess
+carries a wrong label. Check unusual ones (e.g. with `evaluate_csv.py`) before training, and prefer
+10+ sets per exercise from several days – a handful of sets mostly teaches the model one session's
+quirks.
+
+## Experiments that weren't shipped
+
+**Grip-aware curls (November 2026).** RecoFit labels every curl "bicep curl", but measured in the arm
+frame 69 of its 101 curl recordings are thumb-up (hammer curls) and only ~10 clearly palm-up.
+`relabel_curls.py` splits them by measured grip (and turns hammer curls into palm-up ones by rotating
+90° about the forearm), and `train_model.py --grip-aware` keeps the grip through augmentation.
+Held-out RecoFit people: same overall accuracy (87.6 % vs 87.9 % of exercise sets), hammer curls 15/15.
+But on real sets from a user whose palm-up reads ~127° (forearms rarely turn the full 180°), it
+called one of two curls a lateral raise, where the shipped grip-blind model got both right. Grip is
+therefore judged in the app (`GripModel`), against each user's *own* calibrated palm-up range, and the
+model stays grip-tolerant. Revisit with more real recordings from people with different forearm ranges.
 
 ## Credits
 

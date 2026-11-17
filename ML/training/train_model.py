@@ -134,9 +134,9 @@ def augment(batch, rng, grip_sensitive=None):
     return np.concatenate([g, a, w], axis=2).astype(np.float32)
 
 
-def train(model, Xtr, Ytr, classes, epochs, rng, log):
+def train(model, Xtr, Ytr, classes, epochs, rng, log, grip_aware=False):
     counts = np.bincount(Ytr, minlength=len(classes)).astype(float)
-    grip_ids = np.array([c in GRIP_CLASSES for c in classes])
+    grip_ids = np.array([c in GRIP_CLASSES for c in classes]) if grip_aware else None
     weights = torch.tensor((counts.max() / np.maximum(counts, 1)) ** 0.5, dtype=torch.float32)
     opt = torch.optim.AdamW(model.parameters(), lr=2e-3, weight_decay=1e-3)
     steps = epochs * math.ceil(len(Xtr) / 256)
@@ -147,7 +147,7 @@ def train(model, Xtr, Ytr, classes, epochs, rng, log):
         total, correct, loss_sum = 0, 0, 0.0
         for s in range(0, len(order), 256):
             idx = order[s:s + 256]
-            xb = torch.from_numpy(augment(Xtr[idx], rng, grip_ids[Ytr[idx]])).permute(0, 2, 1)
+            xb = torch.from_numpy(augment(Xtr[idx], rng, None if grip_ids is None else grip_ids[Ytr[idx]])).permute(0, 2, 1)
             yb = torch.from_numpy(Ytr[idx])
             logits = model(xb)
             loss = F.cross_entropy(logits, yb, weight=weights, label_smoothing=0.05)
@@ -241,6 +241,8 @@ def main():
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--skip-final", action="store_true", help="only run the held-out evaluation")
     ap.add_argument("--final-only", action="store_true", help="skip the held-out evaluation")
+    ap.add_argument("--grip-aware", action="store_true",
+                    help="keep the grip of curls/pushdowns through augmentation (experimental: see ML/README.md)")
     ap.add_argument("--also-test", default="", help="comma-separated subjects always held out for evaluation "
                                                      "(e.g. user-holdout from add_user_data.py)")
     args = ap.parse_args()
@@ -271,7 +273,7 @@ def main():
         log(f"windows: {len(Xtr)} train, {len(Xte)} test")
         model = ExerciseNet(len(classes))
         log(f"parameters: {sum(p.numel() for p in model.parameters())}")
-        train(model, Xtr, Ytr, classes, args.epochs, rng, log)
+        train(model, Xtr, Ytr, classes, args.epochs, rng, log, args.grip_aware)
         log("\nHeld-out subjects (never seen in training):")
         acc = evaluate(model, Xte, Yte, Rte, classes, log)
         summary = f"held-out-subject set accuracy on exercises: {acc:.2f}"
@@ -285,7 +287,7 @@ def main():
     log("\nFinal model: training on all subjects")
     Xall, Yall, _ = build(x, y, subjects, set(all_subjects.tolist()), classes, TRAIN_HOP, rng)
     final = ExerciseNet(len(classes))
-    train(final, Xall, Yall, classes, args.epochs, rng, log)
+    train(final, Xall, Yall, classes, args.epochs, rng, log, args.grip_aware)
     torch.save(final.state_dict(), os.path.join(args.out, "model.pt"))
     with open(os.path.join(args.out, "classes.json"), "w") as f:
         json.dump(classes, f)
