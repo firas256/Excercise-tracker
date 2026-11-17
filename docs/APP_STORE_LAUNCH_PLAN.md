@@ -34,16 +34,25 @@ accuracy on a real watch** (phase 2), which only you can measure.
 - ✅ Reps under half the required range aren't counted (with a distinct tap and a cue).
 - ✅ Rep counting fix: presses/rows no longer lose the first or last rep (13 exercises × 8 variations).
 - ✅ Live workout screen, set review and arm-motion replay on the iPhone.
-- 🔜 Model retrained with **grip-aware curls** (RecoFit curls split into palm-up vs hammer by measured
-  grip) – shipped only if it beats the current model on held-out people.
 - ✅ Pipeline to retrain on **your own recorded sets** (`ML/training/add_user_data.py`).
+- ✅ **Checked against 13 real sets** from your watch (curls, raises, presses, squat, pec deck,
+  pushdowns). Changes that came out of it: grip is a soft, *learnable* preference (some of your
+  pushdowns look underhand), presses with the elbows forward are recognised (were guessed as squats),
+  and on-device learning no longer creates rules from 1–2 noisy sets. The whole app pipeline now gets
+  **10/13 right, and the right answer is in the top two for 13/13**, once it knows your palm-up range
+  (from your calibration). Remaining misses: lateral vs front raise (look the same from the wrist) and
+  one pushdown that looks exactly like your curls.
+- ✅ Tried a **grip-aware AI model** (RecoFit curls split into palm-up vs hammer): equal on held-out
+  RecoFit people, but worse on your real curls (your palm-up reads ~127°), so it was **not shipped** –
+  see `ML/README.md`.
 
 ### AI: next steps
 | # | Step | Who | Status |
 |---|---|---|---|
-| 1.1 | Do your normal workouts with **Save sensor data** on (watch Settings) and confirm/correct every set. Aim for **10+ sets per exercise** you care about, across several days. | You | 🔜 |
-| 1.2 | iPhone Settings › **Export my recordings** › share the .zip with Claude (attach it, or commit it to a private place). | You | ⬜ |
-| 1.3 | Retrain with your data, report accuracy on your held-out sets, ship the model if it's better. | Claude | ⬜ |
+| 1.1 | **Recalibrate** with the new version (it measures your arm and your palm-up range – the range alone moved your sets from 8/13 to 10/13). | You | 🔜 |
+| 1.2 | Keep recording with **Save sensor data** on and **correct every wrong guess before saving** (the label is whatever you confirm). Aim for **10+ sets per exercise**, over several days. Note your real rep count for a few sets. | You | 🔜 |
+| 1.3 | Export again (iPhone Settings › Export my recordings) and share the .zip. First export (14 sets) received and used for testing; too few and too mixed to train the AI model on yet. | You | ✅ / ⬜ |
+| 1.4a | Retrain with your data, report accuracy on your held-out sets, ship the model only if it's better on both RecoFit and your sets. | Claude | ⬜ |
 | 1.4 | Ask **3–5 friends** of different builds to do the same (TestFlight, phase 4). One person's data makes the model fit *you*; others make it fit *users*. | You | ⬜ |
 | 1.5 | **Kaggle "Gym Workout IMU Dataset"** – recorded on an *Apple Watch* (left wrist, 100 Hz, 164 sets, ~37 gym exercises incl. cable pushdowns, preacher curls, rear delt flies). Its licence is only visible with a Kaggle login: check it; if it allows commercial use (MIT / CC BY / CC0), download and share it. | You → Claude | ⬜ |
 | 1.6 | **RecGym** (CC BY 4.0, wrist IMU, 10 people, 50 h, machines + cardio + "null") – the UCI copy is corrupt (first bytes zeroed); download it from Kaggle (needs a login) and share. Mainly improves rejecting non-exercise movement and machine exercises. Credit required in the app. | You → Claude | ⬜ |
