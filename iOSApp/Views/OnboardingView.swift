@@ -22,7 +22,8 @@ struct OnboardingView: View {
             Spacer()
             Image(systemName: "figure.strengthtraining.traditional")
                 .font(.system(size: 80))
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.brand)
+                .accessibilityHidden(true)
             Text("Rep Coach").font(.largeTitle.bold())
             Text("Your Apple Watch counts reps, recognises the exercise and coaches your range of motion and tempo – for free weights and machines. Requires an Apple Watch.")
                 .multilineTextAlignment(.center)
@@ -30,6 +31,7 @@ struct OnboardingView: View {
             Spacer()
             Button("Continue") { withAnimation { page = 1 } }
                 .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.onBrand)
                 .controlSize(.large)
             Spacer().frame(height: 40)
         }
@@ -46,6 +48,7 @@ struct OnboardingView: View {
             Spacer()
             Button("Continue") { withAnimation { page = 2 } }
                 .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.onBrand)
                 .controlSize(.large)
                 .frame(maxWidth: .infinity)
             Spacer().frame(height: 40)
@@ -88,6 +91,7 @@ struct OnboardingView: View {
             Spacer()
             Button("Get Started", action: onFinish)
                 .buttonStyle(.borderedProminent)
+                .foregroundStyle(Color.onBrand)
                 .controlSize(.large)
                 .frame(maxWidth: .infinity)
             Spacer().frame(height: 40)
@@ -100,8 +104,9 @@ struct OnboardingView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: symbol)
                 .font(.title2)
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.brand)
                 .frame(width: 34)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text(title).font(.headline)
                 Text(detail).font(.subheadline).foregroundStyle(.secondary)
@@ -114,15 +119,16 @@ struct OnboardingView: View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: symbol)
                 .font(.title2)
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.brand)
                 .frame(width: 34)
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 6) {
                 Text(title).font(.headline)
                 Text(detail).font(.subheadline).foregroundStyle(.secondary)
                 if unavailable {
-                    Text("Not available on this device").font(.caption).foregroundStyle(.orange)
+                    Text("Not available on this device").font(.caption).foregroundStyle(Color.warning)
                 } else if granted {
-                    Label("Done", systemImage: "checkmark.circle.fill").font(.caption.bold()).foregroundStyle(.green)
+                    Label("Done", systemImage: "checkmark.circle.fill").font(.caption.bold()).foregroundStyle(Color.brand)
                 } else if let action {
                     Button("Allow", action: action).buttonStyle(.bordered)
                 }

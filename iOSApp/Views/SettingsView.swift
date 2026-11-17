@@ -54,6 +54,7 @@ struct SettingsView: View {
                     NavigationLink("How to train your own model") { TrainingHelpView() }
                     #endif
                     Button("Delete recordings", role: .destructive) { confirmDeleteTraining = true }
+                        .foregroundStyle(store.totalTrainingRecordings == 0 ? Color.secondary : Color.danger)
                         .disabled(store.totalTrainingRecordings == 0)
                 } header: {
                     Text("Motion recordings")
@@ -66,6 +67,7 @@ struct SettingsView: View {
                     Button("Add demo workout") { store.add(DemoData.makeWorkout(daysAgo: Int.random(in: 0...5))) }
                     #endif
                     Button("Delete all workouts", role: .destructive) { confirmDeleteWorkouts = true }
+                        .foregroundStyle(Color.danger)
                 }
 
                 Section("About") {
@@ -94,7 +96,7 @@ struct SettingsView: View {
     @ViewBuilder private var healthStatus: some View {
         switch health.status {
         case .requested:
-            Text("Set up").foregroundStyle(.green)
+            Text("Set up").foregroundStyle(Color.brand)
         case .unavailable:
             Text("Unavailable").foregroundStyle(.secondary)
         case .notRequested, .unknown:
@@ -137,7 +139,7 @@ struct TrainingHelpView: View {
             Text("\(n)")
                 .font(.caption.bold())
                 .frame(width: 24, height: 24)
-                .background(Color.green.opacity(0.2), in: Circle())
+                .background(Color.brand.opacity(0.2), in: Circle())
             Text(text)
         }
     }

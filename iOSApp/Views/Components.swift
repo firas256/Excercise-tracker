@@ -19,7 +19,7 @@ struct ScoreBadge: View {
     }
 
     static func color(for score: Int) -> Color {
-        score >= 85 ? .green : (score >= 65 ? .yellow : .orange)
+        score >= 85 ? Color.brand : (score >= 65 ? .yellow : .orange)
     }
 }
 
@@ -30,13 +30,15 @@ struct StatTile: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Image(systemName: symbol).foregroundStyle(.green)
+            Image(systemName: symbol).foregroundStyle(Color.brand).accessibilityHidden(true)
             Text(value).font(.title2.bold()).monospacedDigit()
             Text(label).font(.caption).foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding(12)
         .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14))
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -66,9 +68,9 @@ struct FeedbackTipRow: View {
 
     private var color: Color {
         switch tip.kind {
-        case .positive: return .green
-        case .warning: return .orange
-        case .info: return .blue
+        case .positive: return .brand
+        case .warning: return .warning
+        case .info: return .info
         }
     }
 }
@@ -87,9 +89,9 @@ struct TrackingQualityBadge: View {
 
     private var color: Color {
         switch quality {
-        case .good: return .green
-        case .moderate: return .blue
-        case .limited: return .orange
+        case .good: return .brand
+        case .moderate: return .info
+        case .limited: return .warning
         }
     }
 }
@@ -114,10 +116,10 @@ struct WatchBackgroundIssueBanner: View {
                 .font(.caption)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .foregroundStyle(.orange)
+        .foregroundStyle(Color.warning)
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
+        .background(Color.warning.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         .accessibilityElement(children: .combine)
     }
 }

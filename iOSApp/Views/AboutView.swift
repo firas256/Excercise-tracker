@@ -63,7 +63,7 @@ struct AboutView: View {
         Label {
             Text(text).font(.subheadline)
         } icon: {
-            Image(systemName: symbol).foregroundStyle(.green)
+            Image(systemName: symbol).foregroundStyle(Color.brand).accessibilityHidden(true)
         }
     }
 

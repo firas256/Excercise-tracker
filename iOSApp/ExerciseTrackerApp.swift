@@ -52,12 +52,12 @@ struct ExerciseTrackerApp: App {
                 }
                 .environmentObject(connectivity)
                 .environmentObject(store)
-                .tint(.green)
+                .tint(Color.brand)
             }
             .environmentObject(store)
             .environmentObject(connectivity)
             .environmentObject(health)
-            .tint(.green)
+            .tint(Color.brand)
             .onChange(of: scenePhase) { _, phase in
                 // Messages from the watch are missed while the app is in the background.
                 if phase == .active { connectivity.refreshLiveWorkout() }

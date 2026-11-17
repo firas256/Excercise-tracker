@@ -76,6 +76,7 @@ struct DashboardView: View {
             HStack(spacing: 12) {
                 Image(systemName: "figure.strengthtraining.traditional")
                     .font(.title2)
+                    .accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Workout in progress").font(.headline)
                     if let state = connectivity.liveWorkout {
@@ -88,8 +89,8 @@ struct DashboardView: View {
                 Image(systemName: "chevron.up")
             }
             .padding()
-            .foregroundStyle(.white)
-            .background(Color.green.gradient, in: RoundedRectangle(cornerRadius: 16))
+            .foregroundStyle(Color.onBrand)
+            .background(Color.brand, in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("liveWorkoutBanner")
@@ -113,6 +114,7 @@ struct DashboardView: View {
                     .padding(.vertical, 6)
             }
             .buttonStyle(.borderedProminent)
+            .foregroundStyle(Color.onBrand)
             .disabled(starting)
             Text(startMessage ?? "Calibration instructions are shown and read aloud here, so you don't need to look at your watch.")
                 .font(.caption)
@@ -120,7 +122,7 @@ struct DashboardView: View {
             if let problem = watchProblem {
                 Label(problem, systemImage: "applewatch.slash")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(Color.warning)
             }
         }
     }
@@ -129,7 +131,8 @@ struct DashboardView: View {
         VStack(spacing: 14) {
             Image(systemName: "applewatch.radiowaves.left.and.right")
                 .font(.system(size: 54))
-                .foregroundStyle(.green)
+                .foregroundStyle(Color.brand)
+                .accessibilityHidden(true)
             Text("No workouts yet").font(.title2.bold())
             Text("Open Rep Coach on your Apple Watch and tap Start Workout. Your sets appear here automatically.")
                 .multilineTextAlignment(.center)
@@ -147,11 +150,16 @@ struct DashboardView: View {
         let score = thisWeek.isEmpty ? 0 : thisWeek.reduce(0) { $0 + $1.averageScore } / thisWeek.count
         return VStack(alignment: .leading, spacing: 8) {
             Text("Last 7 days").font(.headline)
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 10) {
-                StatTile(value: "\(thisWeek.count)", label: "Workouts", symbol: "figure.strengthtraining.traditional")
-                StatTile(value: "\(sets)", label: "Sets", symbol: "square.stack.3d.up.fill")
-                StatTile(value: "\(reps)", label: "Reps", symbol: "repeat")
-                StatTile(value: thisWeek.isEmpty ? "–" : "\(score)", label: "Avg form score", symbol: "star.fill")
+            // A plain Grid (not lazy) so the tiles re-measure for every text size.
+            Grid(horizontalSpacing: 10, verticalSpacing: 10) {
+                GridRow {
+                    StatTile(value: "\(thisWeek.count)", label: "Workouts", symbol: "figure.strengthtraining.traditional")
+                    StatTile(value: "\(sets)", label: "Sets", symbol: "square.stack.3d.up.fill")
+                }
+                GridRow {
+                    StatTile(value: "\(reps)", label: "Reps", symbol: "repeat")
+                    StatTile(value: thisWeek.isEmpty ? "–" : "\(score)", label: "Avg form score", symbol: "star.fill")
+                }
             }
         }
     }
@@ -161,7 +169,7 @@ struct DashboardView: View {
             Text("Reps per day").font(.headline)
             Chart(repsPerDay) { d in
                 BarMark(x: .value("Day", d.day, unit: .day), y: .value("Reps", d.reps))
-                    .foregroundStyle(Color.green.gradient)
+                    .foregroundStyle(Color.brand.gradient)
                     .cornerRadius(4)
             }
             .chartXAxis {
@@ -181,10 +189,10 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("Last workout").font(.caption).foregroundStyle(.secondary)
                     Text(w.startDate, format: .dateTime.weekday(.wide).hour().minute()).font(.headline)
-                    Text(w.exercises.map { $0.displayName }.joined(separator: ", "))
+                    Text(w.exerciseSummary())
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text("\(w.sets.count) sets · \(w.totalReps) reps · \(w.duration.minutesSeconds)")
                         .font(.caption)
                 }
@@ -199,7 +207,7 @@ struct DashboardView: View {
 
     private var calibrationCard: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: "scope").font(.title2).foregroundStyle(.green)
+            Image(systemName: "scope").font(.title2).foregroundStyle(Color.brand).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 if let c = store.calibration {
                     Text("Watch calibrated").font(.headline)

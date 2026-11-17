@@ -139,7 +139,7 @@ struct ArmMotionView: View {
                 seg.move(to: project(liftOffset(a) + a.forearmDirection))
                 seg.addLine(to: project(liftOffset(b) + b.forearmDirection))
                 let age = (time - b.t) / trailSeconds
-                ctx.stroke(seg, with: .color(.green.opacity(0.6 * (1 - age))), lineWidth: 3)
+                ctx.stroke(seg, with: .color(Color.brand.opacity(0.6 * (1 - age))), lineWidth: 3)
             }
         }
 
@@ -152,7 +152,7 @@ struct ArmMotionView: View {
         // Forearm
         var arm = Path()
         arm.move(to: project(elbow)); arm.addLine(to: project(hand))
-        ctx.stroke(arm, with: .color(.green), style: StrokeStyle(lineWidth: 12, lineCap: .round))
+        ctx.stroke(arm, with: .color(Color.brand), style: StrokeStyle(lineWidth: 12, lineCap: .round))
         // Elbow
         let e = project(elbow)
         ctx.fill(Path(ellipseIn: CGRect(x: e.x - 9, y: e.y - 9, width: 18, height: 18)), with: .color(.gray))
@@ -164,7 +164,7 @@ struct ArmMotionView: View {
         let tip = project(hand + frame.palmDirection * 0.35)
         var palm = Path()
         palm.move(to: h); palm.addLine(to: tip)
-        ctx.stroke(palm, with: .color(.orange), style: StrokeStyle(lineWidth: 4, lineCap: .round))
-        ctx.fill(Path(ellipseIn: CGRect(x: tip.x - 4, y: tip.y - 4, width: 8, height: 8)), with: .color(.orange))
+        ctx.stroke(palm, with: .color(Color.warning), style: StrokeStyle(lineWidth: 4, lineCap: .round))
+        ctx.fill(Path(ellipseIn: CGRect(x: tip.x - 4, y: tip.y - 4, width: 8, height: 8)), with: .color(Color.warning))
     }
 }

@@ -9,6 +9,9 @@ struct LiveWorkoutView: View {
     @State private var showExercisePicker = false
     @State private var confirmEnd = false
     @State private var dismissedReview: UUID?
+    /// The big rep count grows and shrinks with the user's text size.
+    @ScaledMetric(relativeTo: .largeTitle) private var repCountSize: CGFloat = 84
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         if let state = connectivity.liveWorkout {
@@ -52,7 +55,7 @@ struct LiveWorkoutView: View {
                     if isStale(at: context.date) {
                         Label("Waiting for your watch – keep it nearby.", systemImage: "antenna.radiowaves.left.and.right.slash")
                             .font(.footnote)
-                            .foregroundStyle(.orange)
+                            .foregroundStyle(Color.warning)
                     }
                 }
                 ArmMotionView(frames: connectivity.frames, lastArrival: connectivity.lastFrameArrival,
@@ -81,6 +84,8 @@ struct LiveWorkoutView: View {
                 connectivity.liveWorkoutMinimized = true
             } label: {
                 Image(systemName: "chevron.down.circle.fill").font(.title2)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
             }
             .accessibilityLabel("Minimize")
             .foregroundStyle(.secondary)
@@ -91,10 +96,10 @@ struct LiveWorkoutView: View {
             }
             Spacer()
             if let start = state.workoutStartedAt {
-                Text(start, style: .timer).font(.title3.monospacedDigit()).foregroundStyle(.yellow)
+                Text(start, style: .timer).font(.title3.monospacedDigit()).foregroundStyle(Color.warning)
             }
             if let hr = state.heartRate {
-                Label("\(Int(hr))", systemImage: "heart.fill").foregroundStyle(.red).font(.subheadline.bold())
+                Label("\(Int(hr))", systemImage: "heart.fill").foregroundStyle(Color.danger).font(.subheadline.bold())
             }
         }
     }
@@ -102,8 +107,8 @@ struct LiveWorkoutView: View {
     private func repBlock(_ state: LiveWorkoutState) -> some View {
         VStack(spacing: 2) {
             Text("\(state.repCount)")
-                .font(.system(size: 84, weight: .bold, design: .rounded))
-                .foregroundStyle(state.status == .inSet ? Color.green : Color.primary)
+                .font(.system(size: repCountSize, weight: .bold, design: .rounded))
+                .foregroundStyle(state.status == .inSet ? Color.brand : Color.primary)
                 .contentTransition(.numericText())
                 .animation(.snappy, value: state.repCount)
             Text(state.repCount == 1 ? "rep" : "reps").font(.subheadline).foregroundStyle(.secondary)
@@ -116,7 +121,7 @@ struct LiveWorkoutView: View {
         case .inSet:
             Text(state.liveCue ?? "Tracking…")
                 .font(.title3.bold())
-                .foregroundStyle(state.lastRepFlagged ? Color.orange : Color.green)
+                .foregroundStyle(state.lastRepFlagged ? Color.warning : Color.brand)
         case .reviewing:
             Button("Review set") { dismissedReview = nil }
                 .font(.title3.bold())
@@ -127,12 +132,12 @@ struct LiveWorkoutView: View {
                     Text(rest, style: .timer).monospacedDigit()
                 }
                 .font(.title3.bold())
-                .foregroundStyle(.orange)
+                .foregroundStyle(Color.warning)
             } else {
                 Text("Start your set").font(.title3).foregroundStyle(.secondary)
             }
         case .ended:
-            Text("Workout complete").font(.title3.bold()).foregroundStyle(.green)
+            Text("Workout complete").font(.title3.bold()).foregroundStyle(Color.brand)
         }
     }
 
@@ -144,24 +149,30 @@ struct LiveWorkoutView: View {
                     .font(.subheadline)
             } else if !state.candidates.isEmpty {
                 Text("Looks like").font(.caption).foregroundStyle(.secondary)
-                HStack(spacing: 8) {
+                // Side by side; stacked when large text needs the width.
+                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))
+                layout {
                     ForEach(state.candidates, id: \.exercise) { c in
                         Button {
                             connectivity.send(.lockExercise(c.exercise))
                         } label: {
                             VStack(spacing: 2) {
-                                Text(c.exercise.displayName).font(.subheadline.bold()).lineLimit(1).minimumScaleFactor(0.7)
+                                Text(c.exercise.displayName).font(.subheadline.bold())
+                                    .multilineTextAlignment(.center)
+                                    .fixedSize(horizontal: false, vertical: true)
                                 Text("\(Int((c.probability * 100).rounded()))%").font(.caption).foregroundStyle(.secondary)
                             }
-                            .frame(maxWidth: .infinity)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.vertical, 8)
-                            .background(c.exercise == state.candidates.first?.exercise ? Color.green.opacity(0.18) : Color.gray.opacity(0.12),
+                            .padding(.horizontal, 4)
+                            .background(c.exercise == state.candidates.first?.exercise ? Color.brand.opacity(0.18) : Color.gray.opacity(0.12),
                                         in: RoundedRectangle(cornerRadius: 12))
                         }
                         .buttonStyle(.plain)
                     }
                 }
-                Text("Tap the right one to lock it for this exercise.").font(.caption2).foregroundStyle(.secondary)
+                Text("Tap the right one to lock it for this exercise.").font(.caption).foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
             } else {
                 Text("Auto-detect – the exercise appears after ~3 reps").font(.subheadline).foregroundStyle(.secondary)
             }
@@ -181,6 +192,7 @@ struct LiveWorkoutView: View {
                         Label("End set", systemImage: "checkmark.circle.fill").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .foregroundStyle(Color.onBrand)
                     Button(role: .destructive) {
                         connectivity.send(.discardSet)
                     } label: {
@@ -204,7 +216,7 @@ struct LiveWorkoutView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
-            .tint(.red)
+            .tint(Color.danger)
         }
     }
 }
@@ -245,10 +257,10 @@ struct PhoneExercisePicker: View {
 
     private func row(_ title: String, selected: Bool, symbol: String) -> some View {
         HStack {
-            Image(systemName: symbol).foregroundStyle(.green).frame(width: 26)
+            Image(systemName: symbol).foregroundStyle(Color.brand).frame(width: 26).accessibilityHidden(true)
             Text(title).foregroundStyle(.primary)
             Spacer()
-            if selected { Image(systemName: "checkmark").foregroundStyle(.green) }
+            if selected { Image(systemName: "checkmark").foregroundStyle(Color.brand) }
         }
     }
 }
@@ -276,7 +288,7 @@ struct PhoneSetReviewView: View {
                                 Text(c.exercise.displayName).foregroundStyle(.primary)
                                 Spacer()
                                 Text("\(Int((c.probability * 100).rounded()))%").foregroundStyle(.secondary)
-                                if exercise == c.exercise { Image(systemName: "checkmark.circle.fill").foregroundStyle(.green) }
+                                if exercise == c.exercise { Image(systemName: "checkmark.circle.fill").foregroundStyle(Color.brand) }
                             }
                         }
                     }
@@ -289,7 +301,7 @@ struct PhoneSetReviewView: View {
                             Text("Something else…")
                             Spacer()
                             if let e = exercise, !pending.candidates.contains(where: { $0.exercise == e }) {
-                                Text(e.displayName).foregroundStyle(.green)
+                                Text(e.displayName).foregroundStyle(Color.brand)
                             }
                         }
                     }
@@ -336,6 +348,7 @@ struct PhoneSetReviewView: View {
                         Text("Save set").bold().frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .foregroundStyle(Color.onBrand)
                 }
                 .controlSize(.large)
                 .padding()

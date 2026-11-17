@@ -34,10 +34,10 @@ struct WorkoutRow: View {
         HStack {
             VStack(alignment: .leading, spacing: 3) {
                 Text(workout.startDate, format: .dateTime.day().month().hour().minute()).font(.headline)
-                Text(workout.exercises.map { $0.displayName }.joined(separator: ", "))
+                Text(workout.exerciseSummary())
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("\(workout.sets.count) sets · \(workout.totalReps) reps").font(.caption)
             }
             Spacer()
@@ -56,13 +56,18 @@ struct WorkoutDetailView: View {
         if let w = workout {
             List {
                 Section {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                        mini("\(w.sets.count)", "sets")
-                        mini("\(w.totalReps)", "reps")
-                        mini(w.duration.minutesSeconds, "duration")
-                        mini(w.averageHeartRate.map { "\(Int($0))" } ?? "–", "avg bpm")
-                        mini(w.activeEnergyKilocalories.map { "\(Int($0))" } ?? "–", "kcal")
-                        mini("\(w.averageScore)", "form score")
+                    // A plain Grid (not lazy) so the cells re-measure for every text size.
+                    Grid(horizontalSpacing: 8, verticalSpacing: 12) {
+                        GridRow {
+                            mini("\(w.sets.count)", "sets")
+                            mini("\(w.totalReps)", "reps")
+                            mini(w.duration.minutesSeconds, "duration")
+                        }
+                        GridRow {
+                            mini(w.averageHeartRate.map { "\(Int($0))" } ?? "–", "avg bpm")
+                            mini(w.activeEnergyKilocalories.map { "\(Int($0))" } ?? "–", "kcal")
+                            mini("\(w.averageScore)", "form score")
+                        }
                     }
                     .padding(.vertical, 4)
                 }
@@ -86,9 +91,12 @@ struct WorkoutDetailView: View {
     private func mini(_ value: String, _ label: String) -> some View {
         VStack {
             Text(value).font(.title3.bold()).monospacedDigit()
-            Text(label).font(.caption2).foregroundStyle(.secondary)
+            Text(label).font(.caption).foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -100,8 +108,10 @@ struct SetRow: View {
         HStack {
             Text("\(index)")
                 .font(.caption.bold())
-                .frame(width: 22, height: 22)
-                .background(Color.green.opacity(0.2), in: Circle())
+                .padding(4)
+                .frame(minWidth: 24, minHeight: 24)
+                .background(Color.brand.opacity(0.2), in: Circle())
+                .accessibilityLabel("Set \(index)")
             VStack(alignment: .leading, spacing: 2) {
                 Text(set.exercise.displayName).font(.headline)
                 HStack(spacing: 6) {
@@ -173,7 +183,7 @@ struct SetDetailView: View {
                     Section("Range of motion per rep") {
                         Chart(set.reps) { r in
                             BarMark(x: .value("Rep", r.index), y: .value("Range", r.rangeOfMotion))
-                                .foregroundStyle(r.issues.contains(.partialRange) ? Color.orange : Color.green)
+                                .foregroundStyle(r.issues.contains(.partialRange) ? Color.warning : Color.brand)
                                 .cornerRadius(3)
                         }
                         .chartYAxisLabel(set.feedback.unit == .degrees ? "degrees" : "cm")
@@ -188,7 +198,7 @@ struct SetDetailView: View {
                                     .foregroundStyle(by: .value("Phase", "Lower"))
                             }
                         }
-                        .chartForegroundStyleScale(["Lift": Color.green, "Lower": Color.blue])
+                        .chartForegroundStyleScale(["Lift": Color.brand, "Lower": Color.info])
                         .chartYAxisLabel("seconds")
                         .frame(height: 160)
                     }
@@ -219,7 +229,7 @@ struct SetDetailView: View {
                                 if !r.issues.isEmpty {
                                     Text(r.issues.map { $0.shortText }.joined(separator: " · "))
                                         .font(.caption)
-                                        .foregroundStyle(.orange)
+                                        .foregroundStyle(Color.warning)
                                 }
                             }
                         }

@@ -187,6 +187,10 @@
 			isa = PBXBuildFile;
 			fileRef = FEEDCD3716CA9191AC26102B;
 		};
+		89640E8D851DFEE01A53CC84 = {
+			isa = PBXBuildFile;
+			fileRef = CD8AE0FCCEDD41B5AD4D7554;
+		};
 		8A492E43575CBBE166CC35B8 = {
 			isa = PBXBuildFile;
 			fileRef = BF4704760BEB475B7FD29822;
@@ -749,6 +753,12 @@
 			path = CalibrationView.swift;
 			sourceTree = "<group>";
 		};
+		CD8AE0FCCEDD41B5AD4D7554 = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = Theme.swift;
+			sourceTree = "<group>";
+		};
 		D4E8DF3D7305AB2707E076A2 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -948,6 +958,7 @@
 				ADA4E81A727349C69667BCDF,
 				0265A1907C4B1240AE592678,
 				1A9E2A7531B78DD4E06D417A,
+				CD8AE0FCCEDD41B5AD4D7554,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -1325,6 +1336,7 @@
 				1D5AC99A4AF7768BEC832398,
 				A0E733EEF06412A4BEF4A565,
 				36D8C72B179311BA1D1E418D,
+				89640E8D851DFEE01A53CC84,
 				189884D58E458AD8A869C3E7,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

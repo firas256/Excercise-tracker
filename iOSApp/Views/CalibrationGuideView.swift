@@ -27,93 +27,124 @@ struct CalibrationGuideView: View {
     }
 
     private func content(_ state: CalibrationLiveState) -> some View {
-        VStack(spacing: 18) {
-            HStack {
-                Label("Calibrating on Apple Watch", systemImage: "applewatch")
-                    .font(.headline)
-                Spacer()
-                Button {
-                    speech.isMuted.toggle()
-                } label: {
-                    Image(systemName: speech.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+        // Scrolls when large text needs more room than the screen has; otherwise fills the screen.
+        GeometryReader { geo in
+            ScrollView {
+                VStack(spacing: 18) {
+                    header(state)
+
+                    if let issue = state.backgroundIssue {
+                        WatchBackgroundIssueBanner(issue: issue)
+                    }
+
+                    stepDots(state)
+
+                    if state.status == .finished {
+                        Spacer(minLength: 0)
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 110))
+                            .foregroundStyle(Color.brand)
+                            .accessibilityHidden(true)
+                        Text("Calibrated!").font(.largeTitle.bold())
+                        Text("You're ready to lift. Start your first set whenever you like.")
+                            .font(.title3)
+                            .multilineTextAlignment(.center)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    } else {
+                        ZStack {
+                            Circle().stroke(Color.gray.opacity(0.2), lineWidth: 12)
+                            Circle()
+                                .trim(from: 0, to: state.status == .holding ? state.progress : 0)
+                                .stroke(Color.brand, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                                .rotationEffect(.degrees(-90))
+                                .animation(.easeInOut(duration: 0.25), value: state.progress)
+                            PoseFigure(pose: state.pose)
+                                .padding(36)
+                        }
+                        .frame(width: ringSize(for: geo.size), height: ringSize(for: geo.size))
+                        .accessibilityHidden(true)
+
+                        Text(state.pose.title)
+                            .font(.largeTitle.bold())
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(state.pose.instruction)
+                            .font(.title3)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                        statusPill(state)
+                        Spacer(minLength: 0)
+                        Text("The watch notices each pose by itself and taps your wrist when it's captured.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                .accessibilityLabel(speech.isMuted ? "Unmute instructions" : "Mute instructions")
-                Button {
-                    connectivity.liveCalibration = nil
-                } label: {
-                    Image(systemName: "xmark.circle.fill").font(.title2)
-                }
-                .accessibilityLabel("Close")
-            }
-            .foregroundStyle(.secondary)
-
-            if let issue = state.backgroundIssue {
-                WatchBackgroundIssueBanner(issue: issue)
-            }
-
-            stepDots(state)
-
-            if state.status == .finished {
-                Spacer()
-                Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 110))
-                    .foregroundStyle(.green)
-                Text("Calibrated!").font(.largeTitle.bold())
-                Text("You're ready to lift. Start your first set whenever you like.")
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(.secondary)
-                Spacer()
-            } else {
-                ZStack {
-                    Circle().stroke(Color.gray.opacity(0.2), lineWidth: 12)
-                    Circle()
-                        .trim(from: 0, to: state.status == .holding ? state.progress : 0)
-                        .stroke(Color.green, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                        .animation(.easeInOut(duration: 0.25), value: state.progress)
-                    PoseFigure(pose: state.pose)
-                        .padding(36)
-                }
-                .frame(maxWidth: 300, maxHeight: 300)
-
-                Text(state.pose.title)
-                    .font(.largeTitle.bold())
-                Text(state.pose.instruction)
-                    .font(.title3)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-                statusPill(state)
-                Spacer(minLength: 0)
-                Text("The watch notices each pose by itself and taps your wrist when it's captured.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
+                .padding(24)
+                .frame(minHeight: geo.size.height)
             }
         }
-        .padding(24)
         .animation(.easeInOut(duration: 0.25), value: state.step)
     }
 
+    /// The pose ring shrinks on short screens so the instructions keep their room.
+    private func ringSize(for size: CGSize) -> CGFloat {
+        max(160, min(300, size.width - 48, size.height * 0.36))
+    }
+
+    private func header(_ state: CalibrationLiveState) -> some View {
+        HStack(spacing: 4) {
+            Label("Calibrating on Apple Watch", systemImage: "applewatch")
+                .font(.headline)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityValue(state.status == .finished ? "Done"
+                                    : "Step \(min(state.step + 1, state.totalSteps)) of \(state.totalSteps)")
+            Spacer(minLength: 8)
+            Button {
+                speech.isMuted.toggle()
+            } label: {
+                Image(systemName: speech.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill")
+                    .font(.title3)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel(speech.isMuted ? "Unmute instructions" : "Mute instructions")
+            Button {
+                connectivity.liveCalibration = nil
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .font(.title2)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityLabel("Close")
+        }
+        .foregroundStyle(.secondary)
+    }
+
+    /// Progress through the poses; VoiceOver reads it as the header's value instead.
     private func stepDots(_ state: CalibrationLiveState) -> some View {
         HStack(spacing: 8) {
             ForEach(0..<state.totalSteps, id: \.self) { i in
                 Capsule()
-                    .fill(i < state.step || state.status == .finished ? Color.green
+                    .fill(i < state.step || state.status == .finished ? Color.brand
                           : (i == state.step ? Color.primary : Color.gray.opacity(0.3)))
                     .frame(width: i == state.step ? 28 : 10, height: 10)
             }
         }
-        .accessibilityLabel("Step \(min(state.step + 1, state.totalSteps)) of \(state.totalSteps)")
+        .accessibilityHidden(true)
     }
 
     @ViewBuilder private func statusPill(_ state: CalibrationLiveState) -> some View {
         let (text, color): (String, Color) = {
             switch state.status {
-            case .moveIntoPosition: return ("Move into position…", .orange)
-            case .holdStill: return ("Now hold still", .yellow)
-            case .holding: return ("Holding… \(Int(state.progress * 100))%", .green)
-            case .wrongPose: return (state.message ?? "Adjust your arm", .red)
+            case .moveIntoPosition: return ("Move into position…", .warning)
+            case .holdStill: return ("Now hold still", .warning)
+            case .holding: return ("Holding… \(Int(state.progress * 100))%", .brand)
+            case .wrongPose: return (state.message ?? "Adjust your arm", .danger)
             case .finished, .cancelled: return ("", .clear)
             }
         }()
@@ -122,8 +153,9 @@ struct CalibrationGuideView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 10)
             .background(color.opacity(0.18), in: Capsule())
-            .foregroundStyle(color == .yellow ? Color.orange : color)
+            .foregroundStyle(color)
             .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -174,7 +206,7 @@ struct PoseFigure: View {
                 CGPoint(x: size.width / 2 + (x - 120) * s, y: size.height / 2 + (y - 120) * s)
             }
             let body = GraphicsContext.Shading.color(.primary.opacity(0.75))
-            let accent = GraphicsContext.Shading.color(.green)
+            let accent = GraphicsContext.Shading.color(Color.brand)
             let line = StrokeStyle(lineWidth: 9 * s, lineCap: .round, lineJoin: .round)
             let front = pose == .armSide
             let shoulder = front ? p(132, 85) : p(120, 85)
@@ -220,8 +252,8 @@ struct PoseFigure: View {
                 arrow.move(to: base); arrow.addLine(to: tip)
                 arrow.move(to: CGPoint(x: tip.x - 7 * s, y: tip.y + (up ? 8 : -8) * s)); arrow.addLine(to: tip)
                 arrow.addLine(to: CGPoint(x: tip.x + 7 * s, y: tip.y + (up ? 8 : -8) * s))
-                ctx.stroke(arrow, with: .color(.orange), style: StrokeStyle(lineWidth: 4 * s, lineCap: .round, lineJoin: .round))
-                ctx.draw(Text(up ? "palm up" : "palm down").font(.system(size: 13 * s, weight: .semibold)).foregroundStyle(.orange),
+                ctx.stroke(arrow, with: .color(Color.warning), style: StrokeStyle(lineWidth: 4 * s, lineCap: .round, lineJoin: .round))
+                ctx.draw(Text(up ? "palm up" : "palm down").font(.system(size: 13 * s, weight: .semibold)).foregroundStyle(Color.warning),
                          at: CGPoint(x: hand.x - 30 * s, y: tip.y), anchor: .center)
             }
         }
