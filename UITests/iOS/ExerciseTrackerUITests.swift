@@ -187,4 +187,76 @@ final class ExerciseTrackerUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["Calibration"].waitForExistence(timeout: 5))
         snap(app, "ios-41-how-it-works")
     }
+
+    // MARK: Accessibility
+
+    /// Apple's accessibility audit (contrast, VoiceOver labels, tap-target size, Dynamic Type,
+    /// clipped text…) on every main screen. Every issue is listed with its screen and element.
+    func testAccessibilityAudit() throws {
+        let app = XCUIApplication()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES"]
+        app.launch()
+        var issues: [String] = []
+        func audit(_ screen: String) throws {
+            try app.performAccessibilityAudit { issue in
+                let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
+                issues.append("\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)")
+                return true  // collect them all; asserted below
+            }
+        }
+
+        XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
+        try audit("Today")
+        openTab(app, "History")
+        XCTAssertTrue(app.cells.firstMatch.waitForExistence(timeout: 5))
+        try audit("History")
+        app.cells.firstMatch.tap()
+        let curl = app.staticTexts["Bicep Curl"].firstMatch
+        XCTAssertTrue(curl.waitForExistence(timeout: 5))
+        try audit("Workout")
+        curl.tap()
+        XCTAssertTrue(app.staticTexts["Feedback"].waitForExistence(timeout: 5))
+        try audit("Set")
+        openTab(app, "Exercises")
+        XCTAssertTrue(app.staticTexts["Bicep Curl"].firstMatch.waitForExistence(timeout: 5))
+        try audit("Exercises")
+        openTab(app, "Settings")
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        try audit("Settings")
+        let about = app.buttons["Privacy, safety & credits"]
+        for _ in 0..<6 where !(about.exists && about.isHittable) { app.swipeUp() }
+        about.tap()
+        XCTAssertTrue(app.staticTexts["Your privacy"].waitForExistence(timeout: 5) || app.staticTexts["YOUR PRIVACY"].exists)
+        snap(app, "ios-42-privacy")
+        try audit("About")
+        app.terminate()
+
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
+        try audit("Live workout")
+        app.terminate()
+
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
+        try audit("Calibration guide")
+
+        let report = XCTAttachment(string: issues.joined(separator: "\n"))
+        report.name = "accessibility-issues"
+        report.lifetime = .keepAlways
+        add(report)
+        print("ACCESSIBILITY ISSUES (\(issues.count)):\n" + issues.joined(separator: "\n"))
+        XCTAssert(issues.isEmpty, "\(issues.count) accessibility issues:\n" + issues.joined(separator: "\n"))
+    }
+
+    private static func name(_ type: XCUIAccessibilityAuditType) -> String {
+        let names: [(XCUIAccessibilityAuditType, String)] = [
+            (.contrast, "contrast"), (.elementDetection, "element detection"), (.hitRegion, "hit region"),
+            (.sufficientElementDescription, "description"), (.dynamicType, "dynamic type"),
+            (.textClipped, "text clipped"), (.trait, "trait"),
+        ]
+        let found = names.filter { type.contains($0.0) }.map { $0.1 }
+        return found.isEmpty ? "other(\(type.rawValue))" : found.joined(separator: "+")
+    }
 }

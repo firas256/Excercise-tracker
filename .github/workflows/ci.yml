@@ -38,6 +38,24 @@ jobs:
           xcodebuild -project ExerciseTracker.xcodeproj -scheme "ExerciseTracker Watch App" \
             -configuration Debug -destination 'generic/platform=watchOS' \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet build
+      - name: Build for release (what goes to the App Store)
+        run: |
+          xcodebuild -project ExerciseTracker.xcodeproj -scheme ExerciseTracker \
+            -configuration Release -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO -quiet build
+      - name: Release app contains its privacy manifests and App Store keys
+        run: |
+          app=$(find ~/Library/Developer/Xcode/DerivedData -path "*Release-iphoneos/ExerciseTracker.app" -maxdepth 6 -type d | head -1)
+          echo "app: $app"
+          test -f "$app/PrivacyInfo.xcprivacy"
+          watch=$(find "$app/Watch" -name "*.app" -maxdepth 1 -type d | head -1)
+          echo "watch: $watch"
+          test -f "$watch/PrivacyInfo.xcprivacy"
+          plutil -lint "$app/PrivacyInfo.xcprivacy" "$watch/PrivacyInfo.xcprivacy"
+          test "$(plutil -extract ITSAppUsesNonExemptEncryption raw "$app/Info.plist")" = "false"
+          test "$(plutil -extract LSApplicationCategoryType raw "$app/Info.plist")" = "public.app-category.healthcare-fitness"
+          for key in NSHealthShareUsageDescription NSHealthUpdateUsageDescription; do plutil -extract $key raw "$app/Info.plist" > /dev/null; done
+          plutil -extract NSMotionUsageDescription raw "$watch/Info.plist" > /dev/null
 
   model-check:
     name: Core ML model matches its PyTorch source

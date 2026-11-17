@@ -171,6 +171,10 @@
 			isa = PBXBuildFile;
 			fileRef = 2A7FF3840B7911D34C84AE42;
 		};
+		7433E5E87FEF541579239DA1 = {
+			isa = PBXBuildFile;
+			fileRef = BAFCC6CC3A2576E53BEAE810;
+		};
 		7915589366CEC674DA19B580 = {
 			isa = PBXBuildFile;
 			fileRef = 2404E5FEB31580C67DA9CD22;
@@ -268,6 +272,10 @@
 			isa = PBXBuildFile;
 			fileRef = 8468E84833FEA41E96EBF1B2;
 		};
+		C5405468C609F73698DA4444 = {
+			isa = PBXBuildFile;
+			fileRef = 58BEE14802451C6423DF71CE;
+		};
 		CBEF5FAB625A2ECEAAF2B717 = {
 			isa = PBXBuildFile;
 			fileRef = FFF96181CD5E87CB30653961;
@@ -327,6 +335,10 @@
 		E972E27BFC06D7AA058A058F = {
 			isa = PBXBuildFile;
 			fileRef = B1E4CCDB16362161C8CF1B0E;
+		};
+		EB45791E68596516D6CA7C20 = {
+			isa = PBXBuildFile;
+			fileRef = DAE443795E0189D99CE4A8E3;
 		};
 		EB7189DBD2DE09D0873FD553 = {
 			isa = PBXBuildFile;
@@ -524,6 +536,12 @@
 			path = WatchConnectivityService.swift;
 			sourceTree = "<group>";
 		};
+		58BEE14802451C6423DF71CE = {
+			isa = PBXFileReference;
+			lastKnownFileType = sourcecode.swift;
+			path = AboutView.swift;
+			sourceTree = "<group>";
+		};
 		5AE7288EB921614EBD9F2FD9 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -707,6 +725,12 @@
 			path = Haptics.swift;
 			sourceTree = "<group>";
 		};
+		BAFCC6CC3A2576E53BEAE810 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			path = PrivacyInfo.xcprivacy;
+			sourceTree = "<group>";
+		};
 		BF4704760BEB475B7FD29822 = {
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
@@ -747,6 +771,12 @@
 			isa = PBXFileReference;
 			lastKnownFileType = sourcecode.swift;
 			path = BodyProfile.swift;
+			sourceTree = "<group>";
+		};
+		DAE443795E0189D99CE4A8E3 = {
+			isa = PBXFileReference;
+			lastKnownFileType = text.xml;
+			path = PrivacyInfo.xcprivacy;
 			sourceTree = "<group>";
 		};
 		DC2D6206BB98D646211E6281 = {
@@ -906,6 +936,7 @@
 		3B0A385BD42C67B1EC8FF7A4 = {
 			isa = PBXGroup;
 			children = (
+				58BEE14802451C6423DF71CE,
 				12A2143116DB5D6A7222A8B2,
 				FFF96181CD5E87CB30653961,
 				30654F4A067D4B8FE0EFC2CE,
@@ -952,6 +983,7 @@
 				B189CB0CF34BC6840EE789AF,
 				A639767CDA2974FAA4A6CECF,
 				65160FE46602A42A0D1A2B8B,
+				DAE443795E0189D99CE4A8E3,
 			);
 			path = WatchApp;
 			sourceTree = "<group>";
@@ -1011,6 +1043,7 @@
 				3B0A385BD42C67B1EC8FF7A4,
 				16DDD35D8698F0AAF0E45463,
 				34BAB1CA28CB5A8EEC3A6A6C,
+				BAFCC6CC3A2576E53BEAE810,
 			);
 			path = iOSApp;
 			sourceTree = "<group>";
@@ -1233,6 +1266,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E0999610EF53F0DE94B68213,
+				EB45791E68596516D6CA7C20,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1241,6 +1275,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				18F436FBA5E9F0F9A4F5B031,
+				7433E5E87FEF541579239DA1,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1278,6 +1313,7 @@
 				98CBD35DDCBBA303D77867E2,
 				CC55E707EFCBAD59062FF274,
 				F3DCD94AF0B5819C547F1E88,
+				C5405468C609F73698DA4444,
 				13C7612135720C2F2BC3E5DA,
 				CBEF5FAB625A2ECEAAF2B717,
 				A0537ECBAFC47C7F555E5444,
@@ -1452,6 +1488,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1518,6 +1555,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1528,6 +1566,7 @@
 				SWIFT_VERSION = 5.0;
 				CODE_SIGN_ENTITLEMENTS = Config/ExerciseTracker.entitlements;
 				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1586,6 +1625,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1596,6 +1636,7 @@
 				SWIFT_VERSION = 5.0;
 				CODE_SIGN_ENTITLEMENTS = Config/ExerciseTracker.entitlements;
 				INFOPLIST_FILE = "Config/iOS-Info.plist";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.healthcare-fitness";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1620,6 +1661,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "Rep Coach";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

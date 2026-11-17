@@ -79,8 +79,14 @@ def build(x, y, subjects, chosen, classes, hop, rng, cap_other=True):
     return np.stack(X).astype(np.float32), np.array(Y), np.array(REC)
 
 
-def augment(batch, rng):
-    """batch: (B, WINDOW, 9) numpy. Mirror, strap rotation, tilt, tempo and amplitude changes, noise."""
+# Classes told apart by grip (how far the forearm is turned): for these the random rotation about the
+# forearm stays small, so the model keeps seeing the grip. Other exercises stay grip-tolerant.
+GRIP_CLASSES = {"bicepCurl", "hammerCurl", "tricepsPushdown"}
+
+
+def augment(batch, rng, grip_sensitive=None):
+    """batch: (B, WINDOW, 9) numpy. Mirror, strap rotation, tilt, tempo and amplitude changes, noise.
+    grip_sensitive: optional (B,) bool – windows whose grip must survive augmentation."""
     B = len(batch)
     # Tempo: resample each window by a random factor (0.6x .. 1.4x speed), keeping its length.
     s = np.exp(rng.uniform(math.log(0.6), math.log(1.4), (B, 1)))
@@ -101,7 +107,12 @@ def augment(batch, rng):
     # +-45 deg covers how the strap sits; an occasional quarter turn covers grip differences
     # (e.g. hammer vs palm-up curls), since RecoFit participants mostly used one grip per exercise.
     quarter = rng.choice([-90.0, 0.0, 0.0, 0.0, 90.0], B)
-    th = np.radians(rng.uniform(-45, 45, B) + quarter)
+    spread = rng.uniform(-45, 45, B)
+    if grip_sensitive is not None:
+        # Calibration already corrects how the strap sits; keep the grip recognisable (±35°).
+        quarter[grip_sensitive] = 0.0
+        spread[grip_sensitive] = rng.uniform(-35, 35, int(grip_sensitive.sum()))
+    th = np.radians(spread + quarter)
     ph = np.radians(rng.uniform(-10, 10, B))
     c, s_, c2, s2 = np.cos(th), np.sin(th), np.cos(ph), np.sin(ph)
     one, zero = np.ones(B), np.zeros(B)
@@ -125,6 +136,7 @@ def augment(batch, rng):
 
 def train(model, Xtr, Ytr, classes, epochs, rng, log):
     counts = np.bincount(Ytr, minlength=len(classes)).astype(float)
+    grip_ids = np.array([c in GRIP_CLASSES for c in classes])
     weights = torch.tensor((counts.max() / np.maximum(counts, 1)) ** 0.5, dtype=torch.float32)
     opt = torch.optim.AdamW(model.parameters(), lr=2e-3, weight_decay=1e-3)
     steps = epochs * math.ceil(len(Xtr) / 256)
@@ -135,7 +147,7 @@ def train(model, Xtr, Ytr, classes, epochs, rng, log):
         total, correct, loss_sum = 0, 0, 0.0
         for s in range(0, len(order), 256):
             idx = order[s:s + 256]
-            xb = torch.from_numpy(augment(Xtr[idx], rng)).permute(0, 2, 1)
+            xb = torch.from_numpy(augment(Xtr[idx], rng, grip_ids[Ytr[idx]])).permute(0, 2, 1)
             yb = torch.from_numpy(Ytr[idx])
             logits = model(xb)
             loss = F.cross_entropy(logits, yb, weight=weights, label_smoothing=0.05)
@@ -229,6 +241,8 @@ def main():
     ap.add_argument("--epochs", type=int, default=30)
     ap.add_argument("--skip-final", action="store_true", help="only run the held-out evaluation")
     ap.add_argument("--final-only", action="store_true", help="skip the held-out evaluation")
+    ap.add_argument("--also-test", default="", help="comma-separated subjects always held out for evaluation "
+                                                     "(e.g. user-holdout from add_user_data.py)")
     args = ap.parse_args()
     os.makedirs(args.out, exist_ok=True)
     report = open(os.path.join(args.out, "report.txt"), "w")
@@ -243,7 +257,9 @@ def main():
     rng = np.random.default_rng(42)
     torch.manual_seed(42)
     all_subjects = np.unique(subjects)
-    test_subjects = set(rng.choice(all_subjects, size=max(1, len(all_subjects) // 5), replace=False).tolist())
+    forced = {s for s in args.also_test.split(",") if s}
+    pool = np.array([s for s in all_subjects if s not in forced and not str(s).startswith("user")])
+    test_subjects = set(rng.choice(pool, size=max(1, len(pool) // 5), replace=False).tolist()) | forced
     train_subjects = set(all_subjects.tolist()) - test_subjects
     log(f"classes ({len(classes)}): {classes}")
     log(f"subjects: {len(train_subjects)} train, {len(test_subjects)} held out")
@@ -259,6 +275,10 @@ def main():
         log("\nHeld-out subjects (never seen in training):")
         acc = evaluate(model, Xte, Yte, Rte, classes, log)
         summary = f"held-out-subject set accuracy on exercises: {acc:.2f}"
+        for group in sorted(forced):
+            Xg, Yg, Rg = build(x, y, subjects, {group}, classes, EVAL_HOP, rng, cap_other=False)
+            log(f"\nOnly '{group}':")
+            evaluate(model, Xg, Yg, Rg, classes, log)
     if args.skip_final:
         return
 

@@ -40,32 +40,37 @@ struct SettingsView: View {
                     }
                     if let exportURL {
                         ShareLink(item: exportURL) {
-                            Label("Share training data (.zip)", systemImage: "square.and.arrow.up")
+                            Label("Share my recordings (.zip)", systemImage: "square.and.arrow.up")
                         }
                     } else {
                         Button {
                             exportURL = store.makeTrainingExport()
                         } label: {
-                            Label("Prepare export for Create ML", systemImage: "shippingbox")
+                            Label("Export my recordings", systemImage: "shippingbox")
                         }
                         .disabled(store.totalTrainingRecordings == 0)
                     }
+                    #if DEBUG
                     NavigationLink("How to train your own model") { TrainingHelpView() }
-                    Button("Delete training data", role: .destructive) { confirmDeleteTraining = true }
+                    #endif
+                    Button("Delete recordings", role: .destructive) { confirmDeleteTraining = true }
                         .disabled(store.totalTrainingRecordings == 0)
                 } header: {
-                    Text("Machine learning data")
+                    Text("Motion recordings")
                 } footer: {
-                    Text("Every confirmed set can save its motion data (toggle on the watch). Export it to train a Core ML model with Create ML – optional, the app works without it.")
+                    Text("Each confirmed set can keep its motion data (watch Settings › Save sensor data). It powers the motion replay of your sets and stays on your devices; export it any time.")
                 }
 
                 Section("Data") {
+                    #if DEBUG
                     Button("Add demo workout") { store.add(DemoData.makeWorkout(daysAgo: Int.random(in: 0...5))) }
+                    #endif
                     Button("Delete all workouts", role: .destructive) { confirmDeleteWorkouts = true }
                 }
 
-                Section("About detection") {
+                Section("About") {
                     NavigationLink("How Rep Coach works") { HowItWorksView() }
+                    NavigationLink("Privacy, safety & credits") { AboutView() }
                 }
             }
             .navigationTitle("Settings")

@@ -59,6 +59,7 @@ FILE_TYPES = {
     ".md": "net.daringfireball.markdown",
     ".mlpackage": "folder.mlpackage",
     ".mlmodel": "file.mlmodel",
+    ".xcprivacy": "text.xml",
 }
 
 
@@ -86,7 +87,7 @@ def group_for_dir(rel_dir, collect, name=None):
         full = os.path.join(ROOT, rel)
         if os.path.isdir(full) and not e.endswith(leaf_dirs):
             children.append(group_for_dir(rel, collect))
-        elif e.endswith((".swift", ".xcassets", ".mlpackage", ".mlmodel")):
+        elif e.endswith((".swift", ".xcassets", ".mlpackage", ".mlmodel", ".xcprivacy")):
             ref = file_ref(rel)
             collect(rel, ref)
             children.append(ref)
@@ -102,7 +103,7 @@ ios_resources, watch_resources = [], []
 
 def collector(sources, resources):
     def collect(path, ref):
-        (resources if path.endswith(".xcassets") else sources).append((path, ref))
+        (resources if path.endswith((".xcassets", ".xcprivacy")) else sources).append((path, ref))
     return collect
 
 
@@ -185,6 +186,8 @@ common_target = {
     "ENABLE_PREVIEWS": "YES",
     "GENERATE_INFOPLIST_FILE": "YES",
     "INFOPLIST_KEY_CFBundleDisplayName": "Rep Coach",
+    # No encryption beyond what the OS provides: skips the export-compliance question per upload.
+    "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
     "LD_RUNPATH_SEARCH_PATHS": ["$(inherited)", "@executable_path/Frameworks"],
     "MARKETING_VERSION": "1.0",
     "PRODUCT_NAME": "$(TARGET_NAME)",
@@ -195,6 +198,7 @@ common_target = {
 ios_settings = dict(common_target, **{
     "CODE_SIGN_ENTITLEMENTS": "Config/ExerciseTracker.entitlements",
     "INFOPLIST_FILE": "Config/iOS-Info.plist",
+    "INFOPLIST_KEY_LSApplicationCategoryType": "public.app-category.healthcare-fitness",
     "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
     "INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents": "YES",
     "INFOPLIST_KEY_UILaunchScreen_Generation": "YES",
