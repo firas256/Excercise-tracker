@@ -13,6 +13,7 @@ struct MotionReplayView: View {
     @State private var time = 0.0
     @State private var playing = false
     @State private var speed = 1.0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let tick = Timer.publish(every: 1.0 / 30, on: .main, in: .common).autoconnect()
 
@@ -85,6 +86,7 @@ struct MotionReplayView: View {
         frames = result
         time = result.first?.t ?? 0
         loading = false
-        playing = result.count > 1
+        // Doesn't start by itself for people who turned on Reduce Motion (tap play instead).
+        playing = result.count > 1 && !reduceMotion && !ArmMotionView.stillForTests
     }
 }

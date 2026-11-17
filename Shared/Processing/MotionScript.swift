@@ -43,7 +43,7 @@ enum MotionScript {
             var o = SyntheticMotion.Options()
             o.reps = entry.1
             o.stillLead = 4
-            o.stillTail = 25
+            o.stillTail = 40
             o.noise = 0.02
             o.sampleRate = rate
             o.seed = UInt64(10 + i)

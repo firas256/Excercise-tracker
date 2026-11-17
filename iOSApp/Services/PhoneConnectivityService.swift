@@ -20,6 +20,8 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     @Published private(set) var lastFrameArrival: Date?
     @Published private(set) var lastLiveUpdate: Date?
     private var demoTimer: Timer?
+    /// Demo mode (`-demoLiveWorkout`): buttons act locally instead of messaging the watch.
+    private var isDemo = false
     private var staleTimer: Timer?
     private var demoFrames: [MotionFrame] = []
     private var demoIndex = 0
@@ -42,7 +44,7 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         // The watch sends a heartbeat every ~5 s; if it has been silent for 2 minutes the
         // workout ended out of range – stop showing it (it comes back if the watch reappears).
         staleTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: true) { [weak self] _ in
-            guard let self, self.demoTimer == nil, self.liveWorkout != nil,
+            guard let self, !self.isDemo, self.liveWorkout != nil,
                   Date().timeIntervalSince(self.lastLiveUpdate ?? .distantPast) > 120 else { return }
             self.liveWorkout = nil
             self.frames = []
@@ -58,7 +60,7 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     /// queued for delivery, time-stamped so the watch can drop it if it arrives too late to mean
     /// the same thing (see `WatchCommand.maxQueuedAge`).
     func send(_ command: WatchCommand) {
-        if demoTimer != nil { applyDemo(command); return }
+        if isDemo { applyDemo(command); return }
         guard WCSession.isSupported(), WCSession.default.activationState == .activated,
               let data = PayloadCoding.encode(command) else { return }
         let payload: [String: Any] = [SyncKeys.command: data, SyncKeys.sentAt: Date().timeIntervalSince1970]
@@ -168,6 +170,12 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         liveWorkout = state
         lastLiveUpdate = Date()
         self.demoFrames = demoFrames
+        isDemo = true
+        if ArmMotionView.stillForTests {
+            // Accessibility audit: one batch of frames, then nothing changes.
+            for _ in 0..<10 { pumpDemoFrames() }
+            return
+        }
         demoTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: true) { [weak self] _ in
             DispatchQueue.main.async { self?.pumpDemoFrames() }
         }

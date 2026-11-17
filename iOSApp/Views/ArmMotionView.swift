@@ -29,6 +29,8 @@ struct ArmMotionView: View {
     }
 
     @State private var camera = Camera.threeD
+    /// `-stillAnimations YES` (accessibility-audit UI test): nothing animates, so the audit can finish.
+    static let stillForTests = UserDefaults.standard.bool(forKey: "stillAnimations")
     private var yaw: Double { camera.angles.0 }
     private var pitch: Double { camera.angles.1 }
 
@@ -36,7 +38,7 @@ struct ArmMotionView: View {
     private let trailSeconds = 2.5
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: playbackTime != nil)) { timeline in
+        TimelineView(.animation(minimumInterval: 1.0 / 30, paused: playbackTime != nil || Self.stillForTests)) { timeline in
             let t = displayTime(now: timeline.date)
             let frame = t.flatMap { interpolated(at: $0) }
             ZStack(alignment: .bottomLeading) {

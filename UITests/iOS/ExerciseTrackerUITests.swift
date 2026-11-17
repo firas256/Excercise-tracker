@@ -194,14 +194,18 @@ final class ExerciseTrackerUITests: XCTestCase {
     /// clipped text…) on every main screen. Every issue is listed with its screen and element.
     func testAccessibilityAudit() throws {
         let app = XCUIApplication()
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"]
         app.launch()
         var issues: [String] = []
         func audit(_ screen: String) throws {
-            try app.performAccessibilityAudit { issue in
-                let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
-                issues.append("\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)")
-                return true  // collect them all; asserted below
+            do {
+                try app.performAccessibilityAudit { issue in
+                    let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
+                    issues.append("\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)")
+                    return true  // collect them all; asserted below
+                }
+            } catch {
+                issues.append("\(screen) | audit could not run | \(error.localizedDescription) | –")
             }
         }
 
@@ -231,13 +235,14 @@ final class ExerciseTrackerUITests: XCTestCase {
         try audit("About")
         app.terminate()
 
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"]
         app.launch()
         XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
         try audit("Live workout")
         app.terminate()
 
-        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES"]
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES",
+                               "-stillAnimations", "YES"]
         app.launch()
         XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
         try audit("Calibration guide")
