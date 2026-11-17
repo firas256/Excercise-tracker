@@ -24,6 +24,15 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         }
     }
 
+    func testHomeScreen() {
+        let app = XCUIApplication()
+        app.launchArguments = ["-watchOnboarded", "YES"]
+        app.launch()
+        XCTAssertTrue(app.buttons["Start Workout"].waitForExistence(timeout: 20))
+        XCTAssertTrue(app.buttons["Calibrate"].exists)
+        snap(app, "watch-01-home")
+    }
+
     func testOnboardingScreen() {
         let app = XCUIApplication()
         app.launchArguments = ["-watchOnboarded", "NO"]
@@ -34,14 +43,11 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
 
     func testCalibrationAndWorkoutWithSimulatedMotion() {
         let app = XCUIApplication()
+        // Started the way the iPhone starts it (no tap on the watch: a system interruption on a slow
+        // Simulator could invalidate the button mid-tap). The home screen has its own test.
         app.launchArguments = ["-watchOnboarded", "YES", "-calibrateEveryWorkout", "YES", "-simulationSpeed", "3",
-                               "-speakInstructions", "NO", "-skipHealthPrompt", "YES"]
+                               "-speakInstructions", "NO", "-skipHealthPrompt", "YES", "-startWorkoutFromPhone", "YES"]
         app.launch()
-
-        let start = app.buttons["Start Workout"]
-        XCTAssertTrue(start.waitForExistence(timeout: 20))
-        snap(app, "watch-01-home")
-        start.tap()
 
         // Guided calibration (scripted motion plays in real time): each pose is detected automatically.
         // On a slow Simulator a pose can be over before a screenshot of the previous one is done,

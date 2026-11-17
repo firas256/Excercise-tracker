@@ -66,6 +66,8 @@ final class WatchAppModel: ObservableObject {
         calibrationModel.session = session
         screen = UserDefaults.standard.bool(forKey: WatchSettings.onboardedKey) ? .home : .onboarding
         WatchConnectivityService.shared.activate()
+        // `-startWorkoutFromPhone YES` (UI tests): behave as if the iPhone just started a workout.
+        if UserDefaults.standard.bool(forKey: "startWorkoutFromPhone") { WatchAppDelegate.pendingStartRequest = true }
         workout.onEndWorkoutRequested = { [weak self] in
             if case .workout = self?.screen { self?.endWorkout() }
         }
