@@ -107,6 +107,16 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
                       "second set was not detected")
         snap(app, "watch-12-second-set")
 
+        // On a slow Simulator a later set may have finished meanwhile and its summary covers the
+        // controls: save it first (it's kept either way).
+        let laterSummary = app.buttons["Save Set"]
+        if laterSummary.exists {
+            snap(app, "watch-12b-later-set-summary")
+            scrollUntilHittable(laterSummary, in: app)
+            if laterSummary.exists && laterSummary.isHittable { laterSummary.tap() }
+        }
+        XCTAssertEqual(app.state, .runningForeground, "app state: \(app.state.rawValue)")
+
         // Controls page → end the workout.
         app.swipeRight()
         let end = app.buttons["End Workout"]

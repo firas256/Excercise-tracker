@@ -150,9 +150,11 @@ final class ExerciseTrackerUITests: XCTestCase {
 
         XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
         snap(app, "ios-10-dashboard")
-        app.swipeUp()
         // The demo calibration ran through the real engine: personal measurements are shown.
-        XCTAssertTrue(app.staticTexts["Your measurements"].waitForExistence(timeout: 5))
+        // (A swipe on a busy Simulator sometimes doesn't scroll, so try a few.)
+        let measurements = app.staticTexts["Your measurements"]
+        for _ in 0..<4 where !(measurements.exists && measurements.isHittable) { app.swipeUp() }
+        XCTAssertTrue(measurements.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Arm (shoulder to watch)"].exists)
         snap(app, "ios-11-dashboard-scrolled")
 
@@ -221,9 +223,11 @@ final class ExerciseTrackerUITests: XCTestCase {
         let about = app.buttons["Privacy, safety & credits"]
         for _ in 0..<14 where !(about.exists && about.isHittable) { app.swipeUp() }
         about.tap()
+        // At this size the row is several screens down, and a list only builds the rows near the screen.
+        XCTAssertTrue(app.navigationBars.firstMatch.waitForExistence(timeout: 5))
         let point = app.staticTexts["No account, no ads, no analytics, no tracking. Nothing is sent to the developer or anyone else."]
-        XCTAssertTrue(point.waitForExistence(timeout: 5))
-        for _ in 0..<10 where !point.isHittable { app.swipeUp() }
+        for _ in 0..<12 where !(point.exists && point.isHittable) { app.swipeUp() }
+        XCTAssertTrue(point.exists, "privacy row not found at the largest text size")
         snap(app, "ios-82-largest-text-privacy")
         app.terminate()
 
