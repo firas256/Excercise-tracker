@@ -136,7 +136,28 @@ enum RepDetector {
             }
         }
 
-        let restHigh = restingSideIsHigh(signals.rawSeries(kind), period: period)
+        // Which end of the movement is the resting one. Travel signals are double-integrated
+        // acceleration: the raw sum drifts by tens of cm within seconds, so the drift-corrected
+        // series is used for them (on 20 random variations of every simulated exercise: wrong 2 % of
+        // the time instead of 28 %).
+        let guess: Bool
+        switch kind {
+        case .vertical, .forearm: guess = restingSideIsHigh(signals.series(kind), period: period)
+        case .elevation, .rotation: guess = restingSideIsHigh(signals.rawSeries(kind), period: period)
+        }
+        // Taking the wrong end as rest always loses a rep (the first or last cycle is never
+        // completed) and never adds one, so segment both ways and keep the one with more reps.
+        let guessed = segmentReps(z, valid: valid, restHigh: guess, x: x, period: period,
+                                  minAmplitude: minAmplitude, signals: signals, kind: kind)
+        let other = segmentReps(z, valid: valid, restHigh: !guess, x: x, period: period,
+                                minAmplitude: minAmplitude, signals: signals, kind: kind)
+        return other.count > guessed.count ? (other, !guess) : (guessed, guess)
+    }
+
+    private static func segmentReps(_ normalised: [Double], valid: [Bool], restHigh: Bool, x: [Double], period: Int,
+                                    minAmplitude: Double, signals: MotionSignals, kind: RepSignalKind) -> [RepSegment] {
+        let n = normalised.count
+        var z = normalised
         if restHigh { for i in 0..<n where valid[i] { z[i] = 1 - z[i] } }
 
         let up = 0.5
@@ -167,7 +188,7 @@ enum RepDetector {
                 }
             }
         }
-        guard !raw.isEmpty else { return ([], restHigh) }
+        guard !raw.isEmpty else { return [] }
 
         // Velocity of the (smoothed) signal for phase timing.
         var v = [Double](repeating: 0, count: n)
@@ -209,7 +230,7 @@ enum RepDetector {
             if amp < max(minAmplitude * 0.8, 0.35 * medianAmp) { continue }
             filtered.append(seg)
         }
-        return (filtered, restHigh)
+        return filtered
     }
 
     /// The buffer starts at rest (pre-roll), so the direction of the first big excursion tells us

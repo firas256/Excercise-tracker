@@ -107,4 +107,22 @@ final class RepDetectionTests: XCTestCase {
         }
         XCTAssertEqual(SetAnalyzer().analyze(samples).repCount, 0)
     }
+
+    /// Every simulated exercise, many random variations, auto-detected and locked: every rep counted.
+    /// (Presses and rows used to lose a rep when drift in the integrated travel signal made the
+    /// rest side look like the far end of the movement.)
+    func testEveryRepCountedAcrossSeeds() throws {
+        var misses: [String] = []
+        for exercise in Self.simulated {
+            for seed: UInt64 in 1...8 {
+                var o = SyntheticMotion.Options()
+                o.seed = seed
+                let samples = try XCTUnwrap(SyntheticMotion.generate(exercise, options: o))
+                let auto = SetAnalyzer().analyze(samples).repCount
+                let locked = SetAnalyzer().analyze(samples, lockedExercise: exercise).repCount
+                if auto != o.reps || locked != o.reps { misses.append("\(exercise.rawValue) seed \(seed): \(auto)/\(locked)") }
+            }
+        }
+        XCTAssert(misses.isEmpty, "\n" + misses.joined(separator: "\n"))
+    }
 }
