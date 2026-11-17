@@ -16,6 +16,118 @@ enum FeedbackEngine {
         var slowingDownLoss = 0.3
     }
 
+    /// A rep covering less than this fraction of the required range isn't counted.
+    static let minimumCountedFraction = 0.5
+
+    /// The user's full range of motion for an exercise, in the unit of the signal the reps were
+    /// counted on, from their calibration: their hanging arm, their arm at shoulder height (forward
+    /// / to the side), their overhead reach, and their arm length and height. nil = no expectation.
+    static func fullRange(for exercise: ExerciseType, signal: RepSignalKind, body: BodyProfile) -> Double? {
+        switch signal {
+        case .elevation, .rotation:
+            switch exercise {
+            case .bicepCurl, .hammerCurl: return body.forwardElevation + 40 + 85   // hanging → well above horizontal
+            case .tricepsPushdown: return body.forwardElevation + 10 + 85          // about horizontal → straight down
+            case .lateralRaise: return body.sideElevation - 5 + 85                 // hanging → shoulder height
+            case .frontRaise: return body.forwardElevation - 5 + 85
+            case .overheadTricepsExtension: return body.overheadElevation - 5 + 40 // behind the head → straight up
+            case .skullCrusher: return 90
+            case .tricepsKickback: return 80
+            default: return nil
+            }
+        case .vertical:
+            switch exercise {
+            case .shoulderPress: return body.fullPressTravel * 100
+            case .squat, .gobletSquat: return body.parallelSquatTravel * 100
+            default: return nil
+            }
+        case .forearm:
+            return nil
+        }
+    }
+
+    /// Separates reps that are too short to count: less than half the required range, which is the
+    /// larger of the user's full range for the exercise (when the exercise is known for sure) and
+    /// their best reps in this set. Counted reps are renumbered 1…n.
+    static func separateTooShort(_ reps: [RepMetrics], exercise: ExerciseType?, exerciseIsCertain: Bool,
+                                 signal: RepSignalKind, body: BodyProfile)
+        -> (counted: [RepMetrics], tooShort: [RepMetrics], required: Double) {
+        guard !reps.isEmpty else { return ([], [], 0) }
+        let ranges = reps.map { $0.rangeOfMotion }
+        var required = ranges.count >= 3 ? SignalMath.percentile(ranges, 85) : (ranges.max() ?? 0)
+        if exerciseIsCertain, let exercise, let full = fullRange(for: exercise, signal: signal, body: body), full > 0 {
+            required = max(required, full)
+        }
+        var counted: [RepMetrics] = []
+        var tooShort: [RepMetrics] = []
+        for rep in reps {
+            if rep.rangeOfMotion < minimumCountedFraction * required {
+                tooShort.append(rep)
+            } else {
+                var r = rep
+                r.index = counted.count + 1
+                counted.append(r)
+            }
+        }
+        return (counted, tooShort, required)
+    }
+
+    /// Attempts the rep finder skipped (it ignores movements under about half of the neighbouring
+    /// reps): after a rep is back at rest, the forearm went part of the way – at least a quarter but
+    /// under half the required range – and came back. Judged on the forearm angle (from gravity, so it
+    /// doesn't drift), whichever signal counted the reps, for exercises whose reps clearly move it.
+    /// Excursions that pause at the top for long (raising the wrist to read the watch) are ignored;
+    /// so is the time before the first rep (picking up the weight).
+    static func skippedAttempts(_ signals: MotionSignals, detection: RepDetectionResult, counted: [RepMetrics],
+                                exercise: ExerciseType?, exerciseIsCertain: Bool, body: BodyProfile) -> [RepMetrics] {
+        let segs = detection.segments
+        guard counted.count >= 2, !segs.isEmpty, signals.count == detection.series.count else { return [] }
+        let swings = counted.map { $0.peakElevation - $0.startElevation }
+        let typical = SignalMath.median(swings)
+        guard abs(typical) >= 30 else { return [] }  // these reps barely change the forearm angle
+        let direction: Double = typical > 0 ? 1 : -1
+        var required = SignalMath.percentile(swings.map { abs($0) }, 85)
+        if exerciseIsCertain, let exercise, let full = fullRange(for: exercise, signal: .elevation, body: body) {
+            required = max(required, full)
+        }
+        let minimum = max(RepDetector.minimumAmplitude(.elevation), 0.25 * required)
+        let maximum = minimumCountedFraction * required
+        let x = detection.signal == .elevation
+            ? detection.series
+            : SignalMath.movingAverage(signals.elevation, window: max(3, Int(0.14 / signals.dt) | 1))
+        let t0 = signals.samples.first?.t ?? 0
+        var attempts: [RepMetrics] = []
+        for (k, seg) in segs.enumerated() {
+            let stop = k + 1 < segs.count ? segs[k + 1].start : x.count - 1
+            // Where this rep is back at rest: past the turnaround, down near its starting level, then
+            // to the bottom of that return.
+            let base = x[seg.start]
+            let amplitude = abs(x[seg.peak] - base)
+            var i = seg.peak
+            while i < stop && (x[i] - base) * direction > 0.3 * amplitude { i += 1 }
+            while i < stop && (x[i + 1] - x[i]) * direction <= 0.5 { i += 1 }
+            guard stop > i + 2 else { continue }
+            let rest = x[i]
+            func height(_ j: Int) -> Double { (x[j] - rest) * direction }
+            var peak = i
+            for j in i...stop where height(j) > height(peak) { peak = j }
+            let excursion = height(peak)
+            guard excursion >= minimum, excursion < maximum else { continue }
+            // Came back towards rest (a full rep still on its way up isn't an attempt)…
+            guard (peak...stop).contains(where: { height($0) <= 0.3 * excursion }) else { continue }
+            // …and didn't linger at the top (that's a look at the watch, not a rep).
+            let nearTop = (i...stop).filter { height($0) >= 0.85 * excursion }.count
+            guard Double(nearTop) * signals.dt <= 1.5 else { continue }
+            attempts.append(RepMetrics(
+                index: 0, startTime: signals.samples[i].t - t0, duration: Double(stop - i) * signals.dt,
+                concentricDuration: 0, eccentricDuration: 0, rangeOfMotion: excursion, unit: .degrees,
+                rangeFraction: excursion / required, meanConcentricSpeed: 0, peakSpeed: 0,
+                startElevation: x[i], peakElevation: x[peak], issues: [], score: 0
+            ))
+        }
+        return attempts
+    }
+
     static func repMetrics(_ signals: MotionSignals, detection: RepDetectionResult,
                            exercise: ExerciseType?, thresholds: Thresholds = Thresholds(),
                            body: BodyProfile = .typical) -> [RepMetrics] {
@@ -141,7 +253,8 @@ enum FeedbackEngine {
         return Int(max(0, min(100, s)).rounded())
     }
 
-    static func setFeedback(_ reps: [RepMetrics], exercise: ExerciseType?, body: BodyProfile = .typical) -> SetFeedback {
+    static func setFeedback(_ reps: [RepMetrics], exercise: ExerciseType?, body: BodyProfile = .typical,
+                            notCounted: Int = 0, requiredRange: Double? = nil) -> SetFeedback {
         guard !reps.isEmpty else { return .empty }
         let ranges = reps.map { $0.rangeOfMotion }
         let avgRange = SignalMath.mean(ranges)
@@ -159,6 +272,12 @@ enum FeedbackEngine {
         func frequent(_ issue: RepIssue) -> Bool { count(issue) >= max(1, Int((0.25 * Double(n)).rounded(.up))) }
 
         var tips: [FeedbackTip] = []
+        if notCounted > 0 {
+            let half = (requiredRange ?? 0) * minimumCountedFraction
+            let limit = half > 0 ? String(format: " (under %.0f%@)", half, reps[0].unit.symbol) : ""
+            tips.append(FeedbackTip(kind: .warning, title: notCounted == 1 ? "1 rep not counted" : "\(notCounted) reps not counted",
+                                    detail: "They covered less than half of the full range\(limit). Move through the whole range for the rep to count."))
+        }
         if frequent(.partialRange) {
             tips.append(FeedbackTip(kind: .warning, title: "Use your full range",
                                     detail: "\(count(.partialRange)) of \(n) reps were shorter than your best reps. A slightly lighter weight can help you reach full range."))
@@ -234,6 +353,9 @@ enum FeedbackEngine {
         return SetFeedback(score: score, averageRange: avgRange, unit: reps[0].unit, rangeVariation: variation,
                            averageConcentric: avgCon, averageEccentric: avgEcc, velocityLoss: velocityLoss, tips: tips)
     }
+
+    /// Shown (and announced with its own tap) when a rep was too short to count.
+    static let notCountedCue = "Too short – not counted"
 
     /// One short line for the watch after each rep.
     static func liveCue(for rep: RepMetrics) -> String {

@@ -4,6 +4,8 @@ enum TrackerEvent {
     case setStarted
     /// Rep count changed. `lastRep` is the most recent completed rep.
     case repsUpdated(count: Int, lastRep: RepMetrics?)
+    /// A rep was too short (under half the required range) and wasn't counted.
+    case repNotCounted(RepMetrics)
     case exerciseGuess([ExerciseCandidate])
     case setCompleted(CompletedSet)
     case setDiscarded(reason: String)
@@ -47,6 +49,7 @@ final class LiveSetTracker {
     private var lastMotionTime = 0.0
     private var lastAnalysisTime = 0.0
     private var announcedReps = 0
+    private var announcedTooShort = 0
     private var announcedGuess: ExerciseType?
 
     init(configuration: Configuration = Configuration(), analyzer: SetAnalyzer = SetAnalyzer()) {
@@ -84,6 +87,7 @@ final class LiveSetTracker {
                     lastMotionTime = s.t
                     lastAnalysisTime = s.t
                     announcedReps = 0
+                    announcedTooShort = 0
                     announcedGuess = nil
                     lastAnalysis = .empty
                     events.append(.setStarted)
@@ -131,6 +135,11 @@ final class LiveSetTracker {
             announcedReps = analysis.repCount
             events.append(.repsUpdated(count: analysis.repCount, lastRep: analysis.reps.last))
         }
+        // A new too-short rep that is also the most recent one: tell the user it didn't count.
+        if analysis.tooShortReps.count > announcedTooShort, let short = analysis.tooShortReps.last {
+            announcedTooShort = analysis.tooShortReps.count
+            if short.startTime >= (analysis.reps.last?.startTime ?? -1) { events.append(.repNotCounted(short)) }
+        }
         if lockedExercise == nil, analysis.repCount >= 3, let top = analysis.candidates.first, top.exercise != announcedGuess {
             announcedGuess = top.exercise
             events.append(.exerciseGuess(analysis.candidates))
@@ -144,6 +153,9 @@ final class LiveSetTracker {
         let start = samples.first?.t ?? endTime
         resetToIdle()
         if analysis.repCount < configuration.minimumReps {
+            if analysis.tooShortReps.count >= configuration.minimumReps {
+                return .setDiscarded(reason: "The reps were too short to count (under half the full range)")
+            }
             return .setDiscarded(reason: "Fewer than \(configuration.minimumReps) reps detected")
         }
         if lockedExercise == nil, let f = analysis.features, FeatureExtractor.looksLikeWalking(f) {
@@ -158,6 +170,7 @@ final class LiveSetTracker {
         preRollBuffer.removeAll()
         aboveSince = nil
         announcedReps = 0
+        announcedTooShort = 0
         announcedGuess = nil
     }
 }

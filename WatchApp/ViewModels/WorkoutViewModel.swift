@@ -244,6 +244,14 @@ final class WorkoutViewModel: ObservableObject {
                     if flagged { Haptics.flaggedRep() } else if WatchSettings.hapticEveryRep { Haptics.goodRep() }
                 }
             }
+        case .repNotCounted:
+            // Movement but not a rep: say so, without touching an unreviewed earlier set.
+            if pendingSet == nil {
+                restStartedAt = nil
+                liveCue = FeedbackEngine.notCountedCue
+                lastRepFlagged = true
+                Haptics.repNotCounted()
+            }
         case .exerciseGuess(let c):
             candidates = c
         case .setCompleted(let set):

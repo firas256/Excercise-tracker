@@ -19,5 +19,7 @@ enum Haptics {
 
     static func goodRep() { play(.click) }
     static func flaggedRep() { play(.retry) }
+    /// Too short (under half the full range): not counted.
+    static func repNotCounted() { play(.failure) }
     static func setFinished() { play(.stop) }
 }

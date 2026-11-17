@@ -175,6 +175,13 @@ vertical travel, push/pull travel). The most rhythmic one (autocorrelation) is c
 there-and-back cycle is counted with hysteresis. Velocity thresholds split each rep into lifting and
 lowering phases, and zero-velocity updates give accurate travel distances.
 
+**Too-short reps don't count.** A rep that covers less than half the required range isn't counted – the
+required range being the larger of your full range for the exercise (from your calibration: e.g. hanging
+arm to above shoulder height for a curl, a full press for your arm length, a parallel squat for your height;
+used only when the exercise is locked or recognised with 60 %+ confidence) and your best reps in that set.
+The watch gives a different tap ("Too short – not counted", also on the iPhone), and the set summary says how
+many reps didn't count. Half-reps between full ones (e.g. a failed last rep) are caught too.
+
 **Personal measurements (from calibration).** Besides learning how you wear the watch, calibration measures
 your body, shown on the iPhone's Today tab:
 - **Arm length** – a straight arm swinging up by 90° (arms down → arm forward) lifts the watch by exactly one

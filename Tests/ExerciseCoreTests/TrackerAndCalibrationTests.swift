@@ -20,6 +20,7 @@ final class LiveSetTrackerTests: XCTestCase {
                 switch e {
                 case .setStarted: started += 1
                 case .repsUpdated(let c, _): counts.append(c)
+                case .repNotCounted(let rep): XCTFail("full rep not counted: \(rep)")
                 case .exerciseGuess(let c): guesses.append(c[0].exercise)
                 case .setCompleted(let set): completed = set
                 case .setDiscarded(let reason): XCTFail("discarded: \(reason)")

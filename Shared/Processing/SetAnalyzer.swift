@@ -8,6 +8,10 @@ struct SetAnalysis {
     /// Locked exercise, or the best guess.
     var exercise: ExerciseType?
     var feedback: SetFeedback
+    /// Reps with less than half the required range: detected, but not counted.
+    var tooShortReps: [RepMetrics] = []
+    /// The range a full rep should have (in the reps' unit); reps under half of it don't count.
+    var requiredRange: Double?
 
     var repCount: Int { reps.count }
     var confidence: Double { candidates.first?.probability ?? 0 }
@@ -40,9 +44,18 @@ struct SetAnalyzer {
             candidates = GripModel.apply(classifier.classify(features, samples: samples), features: features, body: body)
         }
         let exercise = lockedExercise ?? candidates.first?.exercise
-        let reps = FeedbackEngine.repMetrics(signals, detection: detection, exercise: exercise, body: body)
-        let feedback = FeedbackEngine.setFeedback(reps, exercise: exercise, body: body)
-        return SetAnalysis(detection: detection, reps: reps, features: features, candidates: candidates,
-                           exercise: exercise, feedback: feedback)
+        let allReps = FeedbackEngine.repMetrics(signals, detection: detection, exercise: exercise, body: body)
+        // Only trust the exercise's full range when it's certain, so a wrong guess can't discard good reps.
+        let certain = lockedExercise != nil || (candidates.first?.probability ?? 0) >= 0.6
+        let split = FeedbackEngine.separateTooShort(allReps, exercise: exercise, exerciseIsCertain: certain,
+                                                    signal: detection.signal, body: body)
+        let skipped = FeedbackEngine.skippedAttempts(signals, detection: detection, counted: split.counted,
+                                                     exercise: exercise, exerciseIsCertain: certain, body: body)
+        let tooShort = (split.tooShort + skipped).sorted { $0.startTime < $1.startTime }
+        let feedback = FeedbackEngine.setFeedback(split.counted, exercise: exercise, body: body,
+                                                  notCounted: tooShort.count, requiredRange: split.required)
+        return SetAnalysis(detection: detection, reps: split.counted, features: features, candidates: candidates,
+                           exercise: exercise, feedback: feedback, tooShortReps: tooShort,
+                           requiredRange: split.required)
     }
 }
