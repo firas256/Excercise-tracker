@@ -24,7 +24,7 @@ struct OnboardingView: View {
                 .font(.system(size: 80))
                 .foregroundStyle(.green)
             Text("Rep Coach").font(.largeTitle.bold())
-            Text("Your Apple Watch counts reps, recognises the exercise and coaches your range of motion and tempo – for free weights and machines.")
+            Text("Your Apple Watch counts reps, recognises the exercise and coaches your range of motion and tempo – for free weights and machines. Requires an Apple Watch.")
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
             Spacer()
@@ -39,10 +39,10 @@ struct OnboardingView: View {
     private var howItWorks: some View {
         VStack(alignment: .leading, spacing: 22) {
             Text("How it works").font(.largeTitle.bold())
-            step("scope", "1. Calibrate", "Follow 5 quick poses on the watch. It buzzes when it detects each one, learning how the watch sits on your arm.")
+            step("scope", "1. Calibrate", "Follow 5 quick poses, shown on this iPhone and read aloud. The watch taps as it captures each one, learning how it sits on your arm and measuring your arm.")
             step("dumbbell.fill", "2. Lift", "Start your set. The accelerometer and gyroscope track each rep – the watch taps on every rep.")
             step("sparkles", "3. Auto-detect", "After a few reps the watch guesses the exercise. Correct it once and it learns your form.")
-            step("chart.bar.fill", "4. Review", "See range of motion, tempo, consistency and fatigue for every set here on your iPhone.")
+            step("chart.bar.fill", "4. Follow & review", "Watch the set live on this iPhone – no need to turn your wrist – then see range, tempo, consistency and fatigue for every set.")
             Spacer()
             Button("Continue") { withAnimation { page = 2 } }
                 .buttonStyle(.borderedProminent)
@@ -62,7 +62,7 @@ struct OnboardingView: View {
             permissionRow(
                 symbol: "heart.fill",
                 title: "Apple Health",
-                detail: "Runs a strength-training workout on the watch (keeps sensors on with your wrist down), reads heart rate and saves workouts.",
+                detail: "Runs a strength-training workout on the watch, so it keeps counting, tapping you and updating this iPhone while your wrist is down. Also reads heart rate and saves your workouts.",
                 granted: health.status == .requested,
                 unavailable: health.status == .unavailable,
                 action: { health.request() }

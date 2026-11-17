@@ -58,6 +58,16 @@ struct DashboardView: View {
         }
     }
 
+    /// Why starting on the watch can't work yet (nil when it can, or when it can't be told).
+    private var watchProblem: String? {
+        guard connectivity.isSupported, connectivity.isActivated else { return nil }
+        if !connectivity.isPaired { return "No Apple Watch is paired with this iPhone – Rep Coach needs one." }
+        if !connectivity.isWatchAppInstalled {
+            return "Rep Coach isn't on your watch yet: open the Watch app › My Watch › Available Apps › Install."
+        }
+        return nil
+    }
+
     /// A workout is running on the watch but its screen was minimized.
     private var liveWorkoutBanner: some View {
         Button {
@@ -107,6 +117,11 @@ struct DashboardView: View {
             Text(startMessage ?? "Calibration instructions are shown and read aloud here, so you don't need to look at your watch.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+            if let problem = watchProblem {
+                Label(problem, systemImage: "applewatch.slash")
+                    .font(.caption)
+                    .foregroundStyle(.orange)
+            }
         }
     }
 

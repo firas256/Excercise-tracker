@@ -7,6 +7,8 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
     @Published private(set) var isPaired = false
     @Published private(set) var isWatchAppInstalled = false
     @Published private(set) var isReachable = false
+    /// The session has activated, so isPaired / isWatchAppInstalled are known.
+    @Published private(set) var isActivated = false
     /// Live calibration running on the watch (nil when none). Drives the full-screen guide.
     @Published var liveCalibration: CalibrationLiveState?
     /// Live workout running on the watch (nil when none). Drives the full-screen workout screen.
@@ -218,10 +220,12 @@ final class PhoneConnectivityService: NSObject, ObservableObject, WCSessionDeleg
         let paired = session.isPaired
         let installed = session.isWatchAppInstalled
         let reachable = session.isReachable
+        let activated = session.activationState == .activated
         DispatchQueue.main.async {
             self.isPaired = paired
             self.isWatchAppInstalled = installed
             self.isReachable = reachable
+            self.isActivated = activated
         }
     }
 
