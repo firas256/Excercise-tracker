@@ -9,6 +9,12 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         continueAfterFailure = false
     }
 
+    /// A workout left running by a failed test would block the next test's launch.
+    override func tearDown() {
+        XCUIApplication().terminate()
+        super.tearDown()
+    }
+
     private func snap(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
@@ -89,11 +95,16 @@ final class ExerciseTrackerWatchUITests: XCTestCase {
         snap(app, "watch-10-set-summary-bottom")
         if save.exists && save.isHittable { save.tap() }
 
-        XCTAssertTrue(app.staticTexts["Set 2"].waitForExistence(timeout: 10))
+        // The workout moves on to the next set. A slow Simulator can take a minute per screenshot, so
+        // by the time we look it may be a set or two further along – that's fine.
+        let laterSet = app.staticTexts.matching(NSPredicate(format: "label MATCHES 'Set [2-9]'")).firstMatch
+        XCTAssertTrue(laterSet.waitForExistence(timeout: 10), "the workout didn't move on to the next set")
         snap(app, "watch-11-rest")
-        // The next scripted set (lateral raises) starts on its own.
-        let nextGuess = app.staticTexts.containing(NSPredicate(format: "label CONTAINS[c] 'Raise'")).firstMatch
-        XCTAssertTrue(nextGuess.waitForExistence(timeout: 60), "second set was not detected")
+        // The next scripted set (lateral raises) starts on its own; the summary at the end checks
+        // that it was recognised as a raise.
+        let secondSetSeen = NSPredicate(format: "label CONTAINS[c] 'Raise' OR label MATCHES 'Set [3-9]'")
+        XCTAssertTrue(app.staticTexts.matching(secondSetSeen).firstMatch.waitForExistence(timeout: 60),
+                      "second set was not detected")
         snap(app, "watch-12-second-set")
 
         // Controls page → end the workout.

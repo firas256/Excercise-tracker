@@ -58,12 +58,12 @@ struct WorkoutDetailView: View {
                 Section {
                     // A plain Grid (not lazy) so the cells re-measure for every text size.
                     Grid(horizontalSpacing: 8, verticalSpacing: 12) {
-                        GridRow {
+                        GridRow(alignment: .top) {
                             mini("\(w.sets.count)", "sets")
                             mini("\(w.totalReps)", "reps")
                             mini(w.duration.minutesSeconds, "duration")
                         }
-                        GridRow {
+                        GridRow(alignment: .top) {
                             mini(w.averageHeartRate.map { "\(Int($0))" } ?? "–", "avg bpm")
                             mini(w.activeEnergyKilocalories.map { "\(Int($0))" } ?? "–", "kcal")
                             mini("\(w.averageScore)", "form score")
@@ -91,11 +91,12 @@ struct WorkoutDetailView: View {
     private func mini(_ value: String, _ label: String) -> some View {
         VStack {
             Text(value).font(.title3.bold()).monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
             Text(label).font(.caption).foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .frame(maxWidth: .infinity)
         .accessibilityElement(children: .combine)
     }
 }

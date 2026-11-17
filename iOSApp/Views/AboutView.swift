@@ -62,6 +62,7 @@ struct AboutView: View {
     private func point(_ symbol: String, _ text: String) -> some View {
         Label {
             Text(text).font(.subheadline)
+                .fixedSize(horizontal: false, vertical: true)
         } icon: {
             Image(systemName: symbol).foregroundStyle(Color.brand).accessibilityHidden(true)
         }

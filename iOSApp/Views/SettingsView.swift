@@ -47,6 +47,7 @@ struct SettingsView: View {
                             exportURL = store.makeTrainingExport()
                         } label: {
                             Label("Export my recordings", systemImage: "shippingbox")
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                         .disabled(store.totalTrainingRecordings == 0)
                     }

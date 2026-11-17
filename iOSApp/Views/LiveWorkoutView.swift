@@ -160,7 +160,8 @@ struct LiveWorkoutView: View {
                                 Text(c.exercise.displayName).font(.subheadline.bold())
                                     .multilineTextAlignment(.center)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Text("\(Int((c.probability * 100).rounded()))%").font(.caption).foregroundStyle(.secondary)
+                                // Primary, not secondary: the chip's tint behind it costs contrast.
+                                Text("\(Int((c.probability * 100).rounded()))%").font(.caption).foregroundStyle(.primary)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .padding(.vertical, 8)

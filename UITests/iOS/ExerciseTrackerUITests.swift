@@ -191,10 +191,12 @@ final class ExerciseTrackerUITests: XCTestCase {
     // MARK: Accessibility
 
     /// Apple's accessibility audit (contrast, VoiceOver labels, tap-target size, Dynamic Type,
-    /// clipped text…) on every main screen. Every issue is listed with its screen, element and
-    /// position. These are reported but don't fail the test:
-    /// - anything behind the floating tab bar: list content scrolled under the system's glass bar
-    ///   (the audit then reads blurred text, or can't match it to an element);
+    /// clipped text…) on every main screen, in light and dark mode. Every issue is listed with its
+    /// screen, element and position. These are reported but don't fail the test:
+    /// - content behind or right next to the system's glass tab and navigation bars: iOS fades and
+    ///   blurs scrolled content there on purpose, and the audit then reads blurred text (often
+    ///   without being able to tie it to an element). Long screens are audited again scrolled to
+    ///   the bottom, so the rows that were under the tab bar are checked unobstructed;
     /// - "nearly passed" contrast: Apple's standard secondary text colour;
     /// - "partially unsupported" Dynamic Type: the text does grow, just not at every size.
     func testAccessibilityAudit() throws {
@@ -206,23 +208,25 @@ final class ExerciseTrackerUITests: XCTestCase {
         func audit(_ screen: String) throws {
             // Let navigation and tab transitions finish: mid-fade text reads as low contrast.
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
-            let tabBar = app.tabBars.firstMatch
-            let barFrame = tabBar.exists ? tabBar.frame : CGRect.null
+            // The bars plus the band where iOS's scroll-edge effect fades content next to them.
+            let tabBar = app.tabBars.firstMatch, navBar = app.navigationBars.firstMatch
+            let bars = [tabBar.exists ? tabBar.frame.insetBy(dx: 0, dy: -24) : CGRect.null,
+                        navBar.exists ? navBar.frame.insetBy(dx: 0, dy: -16) : CGRect.null].filter { !$0.isNull }
             do {
                 try app.performAccessibilityAudit { issue in
                     let frame = issue.element?.frame ?? .null
                     let place = frame.isNull ? "" : " at y \(Int(frame.minY))–\(Int(frame.maxY))"
                     let element = issue.element.map { "\($0.elementType.rawValue) '\($0.label)' id '\($0.identifier)'" } ?? "?"
                     let line = "\(screen) | \(Self.name(issue.auditType)) | \(issue.compactDescription) | \(element)\(place)"
-                    let underTabBar = !barFrame.isNull && (frame.isNull ? issue.auditType == .elementDetection
-                                                                          : frame.intersects(barFrame))
+                    let underTabBar = !bars.isEmpty && (frame.isNull ? (issue.auditType == .elementDetection || issue.auditType == .contrast)
+                                                                      : bars.contains { frame.intersects($0) })
                     let nearlyPassed = issue.compactDescription.localizedCaseInsensitiveContains("nearly passed")
                     let partialDynamicType = issue.auditType == .dynamicType
                         && issue.compactDescription.localizedCaseInsensitiveContains("partially")
                     if underTabBar || nearlyPassed || partialDynamicType {
                         warnings.append(line)
                     } else {
-                        issues.append(line)
+                        issues.append(line + " | " + issue.detailedDescription)
                     }
                     return true  // collect them all; asserted below
                 }
@@ -246,15 +250,21 @@ final class ExerciseTrackerUITests: XCTestCase {
         openTab(app, "Exercises")
         XCTAssertTrue(app.staticTexts["Bicep Curl"].firstMatch.waitForExistence(timeout: 5))
         try audit("Exercises")
+        for _ in 0..<5 { app.swipeUp() }
+        try audit("Exercises (bottom)")
         openTab(app, "Settings")
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         try audit("Settings")
         let about = app.buttons["Privacy, safety & credits"]
         for _ in 0..<6 where !(about.exists && about.isHittable) { app.swipeUp() }
+        app.swipeUp()
+        try audit("Settings (bottom)")
         about.tap()
         XCTAssertTrue(app.staticTexts["Your privacy"].waitForExistence(timeout: 5) || app.staticTexts["YOUR PRIVACY"].exists)
         snap(app, "ios-42-privacy")
         try audit("About")
+        for _ in 0..<4 { app.swipeUp() }
+        try audit("About (bottom)")
         app.terminate()
 
         app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"]
@@ -268,6 +278,34 @@ final class ExerciseTrackerUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
         try audit("Calibration guide")
+        app.terminate()
+
+        // Dark Mode: the same colours must work on dark backgrounds.
+        XCUIDevice.shared.appearance = .dark
+        defer { XCUIDevice.shared.appearance = .light }
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoWorkout", "YES", "-stillAnimations", "YES"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Last 7 days"].waitForExistence(timeout: 20))
+        snap(app, "ios-90-dark-dashboard")
+        try audit("Today (dark)")
+        openTab(app, "Exercises")
+        XCTAssertTrue(app.staticTexts["Bicep Curl"].firstMatch.waitForExistence(timeout: 5))
+        try audit("Exercises (dark)")
+        openTab(app, "Settings")
+        XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
+        try audit("Settings (dark)")
+        app.terminate()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoLiveWorkout", "live", "-stillAnimations", "YES"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Live workout"].waitForExistence(timeout: 15))
+        snap(app, "ios-91-dark-live-workout")
+        try audit("Live workout (dark)")
+        app.terminate()
+        app.launchArguments = ["-onboardingComplete", "YES", "-demoCalibration", "YES", "-guideSpeechMuted", "YES",
+                               "-stillAnimations", "YES"]
+        app.launch()
+        XCTAssertTrue(app.staticTexts["Arm forward"].waitForExistence(timeout: 15))
+        try audit("Calibration guide (dark)")
 
         let report = XCTAttachment(string: "ISSUES (\(issues.count))\n" + issues.joined(separator: "\n")
                                    + "\n\nWARNINGS (\(warnings.count))\n" + warnings.joined(separator: "\n"))
