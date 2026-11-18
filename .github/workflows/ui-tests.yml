@@ -27,6 +27,11 @@ jobs:
           print("WATCH=" + pick("watchOS", "Apple Watch"))
           PY
           cat "$GITHUB_ENV"
+      # A simulator that's still finishing its boot can time out the first app launch.
+      - name: Boot the iPhone simulator
+        run: |
+          xcrun simctl boot "$PHONE" || true
+          xcrun simctl bootstatus "$PHONE" -b || true
       # Both test steps may fail without stopping the job (so screenshots are always exported);
       # the last step then fails the job if either did.
       - name: iPhone UI tests
