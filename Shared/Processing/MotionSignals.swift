@@ -107,6 +107,21 @@ struct MotionSignals {
         }
     }
 
+    /// For the travel signals: the hand's position (cm) at every index `a...b`, relative to `a`,
+    /// integrated from the acceleration with a zero-velocity update – faithful when the hand is
+    /// still at both `a` and `b`. Unlike `series`, nothing is high-passed, so it stays faithful up
+    /// to the ends of the buffer. nil for the other signals or a too-short span.
+    func travelPath(_ kind: RepSignalKind, from a: Int, to b: Int) -> [Double]? {
+        guard a >= 0, b < count else { return nil }
+        let accel: [Double]
+        switch kind {
+        case .vertical: accel = verticalAcceleration
+        case .forearm: accel = forearmAcceleration
+        case .elevation, .rotation: return nil
+        }
+        return SignalMath.zeroVelocityPath(accel, from: a, to: b + 1, dt: dt)?.map { $0 * 100 }
+    }
+
     /// Signed vertical displacement (cm) between two indices.
     func verticalDisplacement(from a: Int, to b: Int) -> Double {
         SignalMath.zeroVelocityDisplacement(verticalAcceleration, from: a, to: b + 1, dt: dt) * 100

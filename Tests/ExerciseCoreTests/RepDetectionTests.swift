@@ -125,4 +125,43 @@ final class RepDetectionTests: XCTestCase {
         }
         XCTAssert(misses.isEmpty, "\n" + misses.joined(separator: "\n"))
     }
+
+    /// Exercises counted on travel (presses, squats, deadlifts, pulldowns, rows) at fast and slow
+    /// tempos and without pauses, auto-detected and locked: every rep counted, and the lift and the
+    /// lowering told apart. (The travel signal is high-passed, which bends it at the ends of the
+    /// buffer: at these tempos the first rep used to measure too short to count, the last one never
+    /// to come back, and slow sets often took the far end of the movement as the rest.)
+    func testTravelExercisesCountEveryRepAtAnyTempo() throws {
+        let travel = Self.simulated.filter { [.vertical, .forearm].contains($0.preferredSignal) }
+        XCTAssertEqual(travel.count, 7)
+        let tempos: [(name: String, concentric: Double, eccentric: Double, pauseTop: Double, pauseBottom: Double)] = [
+            ("fast", 0.7, 1.0, 0.2, 0.4), ("slow", 1.5, 3.0, 0.2, 0.4), ("no pauses", 1.2, 2.0, 0, 0.05),
+        ]
+        var problems: [String] = []
+        for tempo in tempos {
+            for exercise in travel {
+                for seed: UInt64 in 1...6 {
+                    var o = SyntheticMotion.Options()
+                    o.seed = seed
+                    o.concentric = tempo.concentric
+                    o.eccentric = tempo.eccentric
+                    o.pauseTop = tempo.pauseTop
+                    o.pauseBottom = tempo.pauseBottom
+                    let samples = try XCTUnwrap(SyntheticMotion.generate(exercise, options: o))
+                    let auto = SetAnalyzer().analyze(samples)
+                    let locked = SetAnalyzer().analyze(samples, lockedExercise: exercise)
+                    let label = "\(exercise.rawValue) \(tempo.name) seed \(seed)"
+                    if auto.repCount != o.reps || locked.repCount != o.reps {
+                        problems.append("\(label): counted \(auto.repCount) auto / \(locked.repCount) locked of \(o.reps)")
+                    }
+                    let f = locked.feedback
+                    if abs(f.averageConcentric - o.concentric) > 0.4 || abs(f.averageEccentric - o.eccentric) > 0.6 {
+                        problems.append(String(format: "%@: lift %.2f s / lowering %.2f s, expected %.1f / %.1f", label,
+                                               f.averageConcentric, f.averageEccentric, o.concentric, o.eccentric))
+                    }
+                }
+            }
+        }
+        XCTAssert(problems.isEmpty, "\n" + problems.joined(separator: "\n"))
+    }
 }

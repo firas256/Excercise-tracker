@@ -155,20 +155,28 @@ enum SignalMath {
     /// zero at both ends (true at the turnaround points of a rep). Linear velocity-drift removal
     /// ("zero-velocity update") keeps double integration accurate over the few seconds of a rep.
     static func zeroVelocityDisplacement(_ accel: [Double], from start: Int, to end: Int, dt: Double) -> Double {
-        guard end - start > 2, start >= 0, end <= accel.count else { return 0 }
+        zeroVelocityPath(accel, from: start, to: end, dt: dt)?.last ?? 0
+    }
+
+    /// The position at every sample from `start` (0 there) to `end` (exclusive) under the same
+    /// zero-velocity update; its last value is `zeroVelocityDisplacement`. nil if too short.
+    static func zeroVelocityPath(_ accel: [Double], from start: Int, to end: Int, dt: Double) -> [Double]? {
+        guard end - start > 2, start >= 0, end <= accel.count else { return nil }
         let n = end - start
         var v = [Double](repeating: 0, count: n)
         for i in 1..<n {
             v[i] = v[i - 1] + 0.5 * (accel[start + i - 1] + accel[start + i]) * dt
         }
         let drift = v[n - 1]
+        var path = [Double](repeating: 0, count: n)
         var p = 0.0
         for i in 1..<n {
             let c0 = v[i - 1] - drift * Double(i - 1) / Double(n - 1)
             let c1 = v[i] - drift * Double(i) / Double(n - 1)
             p += 0.5 * (c0 + c1) * dt
+            path[i] = p
         }
-        return p
+        return path
     }
 
     /// Principal axis (largest-variance direction) of a cloud of 3D vectors, via power iteration
