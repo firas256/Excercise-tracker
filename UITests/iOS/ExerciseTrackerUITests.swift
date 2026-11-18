@@ -27,6 +27,26 @@ final class ExerciseTrackerUITests: XCTestCase {
         return (CGFloat(pixel[0]) + CGFloat(pixel[1]) + CGFloat(pixel[2])) / 765
     }
 
+    /// Waits until the screen has stopped moving (a list coasting after a swipe): the audit reads
+    /// moving text as low contrast.
+    private func waitUntilStill(_ app: XCUIApplication, timeout: TimeInterval = 6) {
+        let probe = app.cells.firstMatch.exists ? app.cells.firstMatch : app.staticTexts.element(boundBy: 2)
+        var last = CGRect.null
+        let end = Date().addingTimeInterval(timeout)
+        while Date() < end {
+            let now = probe.exists ? probe.frame : .null
+            if !now.isNull && now == last { return }
+            last = now
+            RunLoop.current.run(until: Date().addingTimeInterval(0.6))
+        }
+    }
+
+    /// Scrolls to the end of a long screen without momentum and waits for it to settle.
+    private func scrollToBottom(_ app: XCUIApplication, swipes: Int) {
+        for _ in 0..<swipes { app.swipeUp(velocity: .slow) }
+        waitUntilStill(app)
+    }
+
     private func snap(_ app: XCUIApplication, _ name: String) {
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = name
@@ -259,6 +279,7 @@ final class ExerciseTrackerUITests: XCTestCase {
         func audit(_ screen: String) throws {
             // Let navigation and tab transitions finish: mid-fade text reads as low contrast.
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
+            waitUntilStill(app)
             // The bars plus the band where iOS's scroll-edge effect fades content next to them; at the
             // top, everything above the navigation bar's bottom edge (content scrolled up under the
             // bar and the status bar).
@@ -319,20 +340,20 @@ final class ExerciseTrackerUITests: XCTestCase {
         openTab(app, "Exercises")
         XCTAssertTrue(app.staticTexts["Bicep Curl"].firstMatch.waitForExistence(timeout: 5))
         try audit("Exercises")
-        for _ in 0..<5 { app.swipeUp() }
+        scrollToBottom(app, swipes: 8)
         try audit("Exercises (bottom)")
         openTab(app, "Settings")
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout: 5))
         try audit("Settings")
         let about = app.buttons["Privacy, safety & credits"]
         for _ in 0..<6 where !(about.exists && about.isHittable) { app.swipeUp() }
-        app.swipeUp()
+        scrollToBottom(app, swipes: 2)
         try audit("Settings (bottom)")
         about.tap()
         XCTAssertTrue(app.staticTexts["Your privacy"].waitForExistence(timeout: 5) || app.staticTexts["YOUR PRIVACY"].exists)
         snap(app, "ios-42-privacy")
         try audit("About")
-        for _ in 0..<4 { app.swipeUp() }
+        scrollToBottom(app, swipes: 6)
         try audit("About (bottom)")
         app.terminate()
 
