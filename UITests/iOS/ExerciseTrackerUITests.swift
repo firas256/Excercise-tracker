@@ -259,10 +259,13 @@ final class ExerciseTrackerUITests: XCTestCase {
         func audit(_ screen: String) throws {
             // Let navigation and tab transitions finish: mid-fade text reads as low contrast.
             RunLoop.current.run(until: Date().addingTimeInterval(1.5))
-            // The bars plus the band where iOS's scroll-edge effect fades content next to them.
+            // The bars plus the band where iOS's scroll-edge effect fades content next to them; at the
+            // top, everything above the navigation bar's bottom edge (content scrolled up under the
+            // bar and the status bar).
             let tabBar = app.tabBars.firstMatch, navBar = app.navigationBars.firstMatch
+            let topEdge = navBar.exists ? navBar.frame.maxY + 8 : 50
             let bars = [tabBar.exists ? tabBar.frame.insetBy(dx: 0, dy: -24) : CGRect.null,
-                        navBar.exists ? navBar.frame.insetBy(dx: 0, dy: -16) : CGRect.null].filter { !$0.isNull }
+                        CGRect(x: -10_000, y: -10_000, width: 20_000, height: 10_000 + topEdge)].filter { !$0.isNull }
             // A busy Simulator sometimes can't finish an audit in time: one retry.
             var lastError: Error?
             for attempt in 0..<2 {
